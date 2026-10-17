@@ -6,10 +6,16 @@ import {
   Search,
   ArrowUpRight,
   Bookmark,
+  Plus,
 } from "lucide-react";
 import SearchEngineLogo from "./SearchEngineLogo";
 import BookmarkIcon from "./BookmarkIcon";
 import { fetchGoogleSuggestions } from "../utils/searchSuggestions";
+import {
+  deriveLabelFromUrl,
+  formatBookmarkUrl,
+  isValidUrl,
+} from "../utils/bookmarkUtils";
 import "./SearchBar.css";
 
 const ENGINES = [
@@ -44,7 +50,7 @@ const ENGINE_PLACEHOLDERS = {
 };
 
 export default function SearchBar() {
-  const { settings } = useSettings();
+  const { settings, updateSetting } = useSettings();
   const [query, setQuery] = useState("");
   const [engine, setEngine] = useState(settings?.defaultEngine ?? 0);
   const [suggestions, setSuggestions] = useState([]);
@@ -80,6 +86,29 @@ export default function SearchBar() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Global key listener: Press '/' or 'Ctrl+K' / 'Cmd+K' to focus search input
+  useEffect(() => {
+    const handleGlobalKeyDown = (e) => {
+      const tag = document.activeElement?.tagName?.toLowerCase();
+      const isInput =
+        tag === "input" ||
+        tag === "textarea" ||
+        tag === "select" ||
+        document.activeElement?.isContentEditable;
+
+      if (
+        (e.key === "/" && !isInput) ||
+        ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K"))
+      ) {
+        e.preventDefault();
+        inputRef.current?.focus();
+        inputRef.current?.select();
+      }
+    };
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
   // Fetch suggestions with 150ms debounce
   useEffect(() => {
     const trimmed = query.trim();
@@ -99,9 +128,10 @@ export default function SearchBar() {
     return () => clearTimeout(timer);
   }, [query]);
 
-  // Combine matching bookmarks + web search suggestions
+  // Combine matching bookmarks + quick add option + web search suggestions
   const items = useMemo(() => {
-    const trimmed = query.trim().toLowerCase();
+    const rawTrimmed = query.trim();
+    const trimmed = rawTrimmed.toLowerCase();
     if (!trimmed) return [];
 
     const bookmarkMatches = (settings?.bookmarks || [])
@@ -118,12 +148,42 @@ export default function SearchBar() {
         icon: bm.icon,
       }));
 
+    // Detect if user typed a bookmark command ("bm https://...", "+bm url", "bookmark url") or a URL
+    const isBmCommand = /^(\+?bm|bookmark|add)\s+/i.test(rawTrimmed);
+    const targetUrl = isBmCommand
+      ? rawTrimmed.replace(/^(\+?bm|bookmark|add)\s+/i, "").trim()
+      : rawTrimmed;
+
+    let quickAddItem = null;
+    if (isValidUrl(targetUrl)) {
+      const formatted = formatBookmarkUrl(targetUrl);
+      const exists = (settings?.bookmarks || []).some(
+        (b) => b.url?.toLowerCase() === formatted.toLowerCase(),
+      );
+      if (!exists) {
+        const derived = deriveLabelFromUrl(formatted);
+        quickAddItem = {
+          type: "quick_add_bookmark",
+          text: `Stash bookmark: ${derived || targetUrl}`,
+          url: formatted,
+          label: derived || "Link",
+          icon: "favicon",
+        };
+      }
+    }
+
     const searchMatches = suggestions.map((s) => ({
       type: "search",
       text: s,
     }));
 
-    return [...bookmarkMatches, ...searchMatches];
+    if (isBmCommand && quickAddItem) {
+      return [quickAddItem, ...bookmarkMatches, ...searchMatches];
+    }
+
+    return quickAddItem
+      ? [...bookmarkMatches, quickAddItem, ...searchMatches]
+      : [...bookmarkMatches, ...searchMatches];
   }, [query, suggestions, settings?.bookmarks]);
 
   // Auto-scroll active item into view
@@ -156,12 +216,54 @@ export default function SearchBar() {
       setQuery("");
       setShowDropdown(false);
       setActiveIndex(-1);
+    } else if (item.type === "quick_add_bookmark") {
+      const newBookmark = {
+        id: Date.now().toString(),
+        label: item.label,
+        url: item.url,
+        icon: item.icon || "favicon",
+      };
+      updateSetting("bookmarks", [...(settings?.bookmarks || []), newBookmark]);
+      setQuery("");
+      setShowDropdown(false);
+      setActiveIndex(-1);
     } else {
       executeSearch(item.text);
     }
   }
 
   function handleKeyDown(e) {
+    // Switch search engines using Alt+1..4
+    if (e.altKey && ["1", "2", "3", "4"].includes(e.key)) {
+      e.preventDefault();
+      const targetIndex = parseInt(e.key, 10) - 1;
+      if (targetIndex >= 0 && targetIndex < ENGINES.length) {
+        setEngine(targetIndex);
+      }
+      return;
+    }
+
+    // If query is empty and user hits Tab, cycle to next search engine
+    if (e.key === "Tab" && !query.trim() && (!showDropdown || items.length === 0)) {
+      e.preventDefault();
+      setEngine((prev) => (prev + 1) % ENGINES.length);
+      return;
+    }
+
+    // Escape handling: dismiss dropdown, clear query, or blur
+    if (e.key === "Escape") {
+      e.preventDefault();
+      if (showDropdown) {
+        setShowDropdown(false);
+        setActiveIndex(-1);
+      } else if (query) {
+        setQuery("");
+      } else {
+        inputRef.current?.blur();
+      }
+      return;
+    }
+
     if (!showDropdown || items.length === 0) {
       if (e.key === "ArrowDown" && items.length > 0) {
         e.preventDefault();
@@ -202,12 +304,6 @@ export default function SearchBar() {
         }
         break;
 
-      case "Escape":
-        e.preventDefault();
-        setShowDropdown(false);
-        setActiveIndex(-1);
-        break;
-
       default:
         break;
     }
@@ -239,7 +335,8 @@ export default function SearchBar() {
             type="button"
             className={`engine-btn ${i === engine ? "active" : ""}`}
             onClick={() => setEngine(i)}
-            title={e.label}
+            data-tooltip={`${e.label} (Alt+${i + 1})`}
+            title={`${e.label} (Alt+${i + 1})`}
             aria-label={e.label}
           >
             <SearchEngineLogo engine={e.label} size={17} />
@@ -285,21 +382,22 @@ export default function SearchBar() {
             {items.map((item, idx) => {
               const isActive = idx === activeIndex;
               const isBookmark = item.type === "bookmark";
+              const isAddBookmark = item.type === "quick_add_bookmark";
               return (
                 <li
                   key={`${item.type}-${item.text}-${idx}`}
                   className={`suggestion-item ${isActive ? "active" : ""} ${
                     isBookmark ? "is-bookmark" : ""
-                  }`}
+                  } ${isAddBookmark ? "is-add-bookmark" : ""}`}
                   role="option"
                   aria-selected={isActive}
                   onMouseEnter={() => setActiveIndex(idx)}
                   onClick={() => handleSelect(item)}
                 >
                   <span className="suggestion-icon-box">
-                    {isBookmark ? (
+                    {isBookmark || isAddBookmark ? (
                       <BookmarkIcon
-                        name={item.icon || "Bookmark"}
+                        name={item.icon || (isAddBookmark ? "favicon" : "Bookmark")}
                         url={item.url}
                         size={14}
                       />
@@ -308,7 +406,11 @@ export default function SearchBar() {
                     )}
                   </span>
                   <span className="suggestion-text">
-                    {highlightMatch(item.text, query)}
+                    {isAddBookmark ? (
+                      item.text
+                    ) : (
+                      highlightMatch(item.text, query)
+                    )}
                   </span>
                   {isBookmark && (
                     <span className="suggestion-badge">
@@ -316,9 +418,17 @@ export default function SearchBar() {
                       <span>bookmark</span>
                     </span>
                   )}
+                  {isAddBookmark && (
+                    <span className="suggestion-badge is-add-badge">
+                      <Plus size={10} />
+                      <span>quick stash</span>
+                    </span>
+                  )}
                   <span className="suggestion-action-hint">
                     {isBookmark ? (
                       <ArrowUpRight size={13} />
+                    ) : isAddBookmark ? (
+                      <CornerDownLeft size={13} />
                     ) : isActive ? (
                       "↵"
                     ) : (

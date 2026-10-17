@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useSettings } from "../context/SettingsContext";
 import { Sparkles, ArrowRight } from "lucide-react";
+import useLockBodyScroll from "../hooks/useLockBodyScroll";
 import "./WelcomeModal.css";
 
 const WELCOME_STORAGE_KEY = "hacker_tab_welcomed";
@@ -10,6 +12,9 @@ export default function WelcomeModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState("");
   const inputRef = useRef(null);
+
+  // Lock background scrolling while welcome modal is open
+  useLockBodyScroll(isOpen);
 
   useEffect(() => {
     // Check if the user has already completed or dismissed onboarding
@@ -70,7 +75,7 @@ export default function WelcomeModal() {
 
   if (!isOpen) return null;
 
-  return (
+  const modalContent = (
     <div
       className="welcome-backdrop"
       onClick={handleDismiss}
@@ -131,4 +136,8 @@ export default function WelcomeModal() {
       </div>
     </div>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(modalContent, document.body)
+    : modalContent;
 }

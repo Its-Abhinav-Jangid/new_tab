@@ -16,6 +16,7 @@ export const DEFAULT_SETTINGS = {
   cardSize: "medium", // 'compact' | 'medium' | 'large'
   showGreeting: true,
   greetingName: "hacker",
+  showScratchpad: true,
 
   // Clock
   timeFormat: "24h", // '24h' | '12h'
@@ -71,44 +72,44 @@ export const DEFAULT_SETTINGS = {
       id: "1",
       label: "HackTricks",
       url: "https://book.hacktricks.xyz",
-      icon: "BookOpen",
+      icon: "favicon",
     },
     {
       id: "2",
       label: "PortSwigger",
       url: "https://portswigger.net/web-security",
-      icon: "Shield",
+      icon: "favicon",
     },
     {
       id: "3",
       label: "GTFOBins",
       url: "https://gtfobins.github.io",
-      icon: "Terminal",
+      icon: "favicon",
     },
     {
       id: "4",
       label: "CVE Details",
       url: "https://www.cvedetails.com",
-      icon: "Search",
+      icon: "favicon",
     },
     {
       id: "5",
       label: "ExploitDB",
       url: "https://www.exploit-db.com",
-      icon: "Flame",
+      icon: "favicon",
     },
-    { id: "6", label: "Shodan", url: "https://www.shodan.io", icon: "Radio" },
+    { id: "6", label: "Shodan", url: "https://www.shodan.io", icon: "favicon" },
     {
       id: "7",
       label: "CyberChef",
       url: "https://gchq.github.io/CyberChef",
-      icon: "Cpu",
+      icon: "favicon",
     },
     {
       id: "8",
       label: "RevShells",
       url: "https://www.revshells.com",
-      icon: "Link",
+      icon: "favicon",
     },
   ],
 };

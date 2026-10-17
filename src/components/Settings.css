@@ -4,7 +4,9 @@
   inset: 0;
   background: rgba(13, 14, 26, 0.7);
   backdrop-filter: blur(4px);
-  z-index: 99;
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 1500;
+  touch-action: none;
   animation: fadeIn 0.2s ease;
 }
 
@@ -23,16 +25,17 @@
   position: fixed;
   top: 0;
   right: 0;
-  width: auto;
-  max-width: 90vw;
+  width: 440px;
+  max-width: 92vw;
   height: 100vh;
   background: var(--bg-secondary);
   border-left: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  z-index: 100;
+  z-index: 1510;
   animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  overscroll-behavior: contain;
 }
 
 @keyframes slideIn {
@@ -165,6 +168,9 @@
 .s-body {
   flex: 1;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
   padding: 4px 0 8px;
 }
 
@@ -523,100 +529,6 @@
   margin-left: auto;
 }
 
-/* ── Bookmarks form ───────────────────────────────────────── */
-.s-bm-icon-picker {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
-  gap: 6px;
-  padding: 4px 20px 12px;
-}
-
-.s-icon-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--radius-sm);
-  border: 1px solid var(--border);
-  background: var(--bg-card);
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s, color 0.15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.s-icon-btn:hover {
-  background: var(--bg-card-hover);
-  color: var(--text-primary);
-  border-color: var(--border-bright);
-}
-
-.s-icon-btn.active {
-  border-color: var(--accent, var(--cyan));
-  color: var(--accent, var(--cyan));
-  background: rgba(125, 207, 255, 0.08);
-}
-
-.s-icon-btn-favicon {
-  border-style: dashed;
-}
-
-.s-bm-favicon-preview {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
-  background: var(--bg-card);
-  border: 1px dashed var(--border-bright);
-  border-radius: var(--radius-sm);
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-secondary);
-}
-
-.s-bm-form {
-
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 0 20px 12px;
-}
-
-.s-error {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--orange);
-}
-
-.s-bm-form-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-right: 20px;
-}
-
-.s-bm-cancel-link {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-muted);
-  background: none;
-  border: none;
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  transition: color 0.15s;
-}
-
-.s-bm-cancel-link:hover {
-  color: var(--accent, var(--cyan));
-}
-
-.s-bm-form-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 2px;
-}
 
 .s-btn-primary {
   background: var(--accent, var(--cyan));
@@ -661,91 +573,6 @@
   color: var(--text-primary);
   border-color: var(--border-bright);
   background: var(--bg-card-hover);
-}
-
-/* ── Bookmark list ────────────────────────────────────────── */
-.s-bm-list {
-  list-style: none;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 0 20px 8px;
-}
-
-.s-bm-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
-}
-
-.s-bm-item.editing {
-  border-color: var(--accent, var(--cyan));
-  background: rgba(125, 207, 255, 0.06);
-  box-shadow: 0 0 8px rgba(125, 207, 255, 0.1);
-}
-
-.s-bm-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent, var(--cyan));
-  flex-shrink: 0;
-}
-
-.s-bm-label {
-  color: var(--text-primary);
-  min-width: 80px;
-}
-
-.s-bm-url {
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  font-size: 10px;
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.s-bm-item-actions {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-}
-
-.s-bm-action-btn {
-  color: var(--text-muted);
-  padding: 4px;
-  border-radius: 3px;
-  transition: color 0.15s, background 0.15s;
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.s-bm-action-btn:hover {
-  color: var(--accent, var(--cyan));
-  background: rgba(125, 207, 255, 0.1);
-}
-
-.s-bm-action-btn.active {
-  color: var(--accent, var(--cyan));
-  background: rgba(125, 207, 255, 0.15);
-}
-
-.s-bm-action-btn.s-bm-remove:hover {
-  color: var(--red);
-  background: rgba(247, 118, 142, 0.1);
 }
 
 .s-empty {

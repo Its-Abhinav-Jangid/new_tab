@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useSettings } from "../context/SettingsContext";
-import BookmarkIcon, { AVAILABLE_BOOKMARK_ICONS } from "./BookmarkIcon";
+import useLockBodyScroll from "../hooks/useLockBodyScroll";
 import SearchEngineLogo from "./SearchEngineLogo";
 import { Sketch } from "@uiw/react-color";
 import {
@@ -8,17 +9,13 @@ import {
   Clock as ClockIcon,
   Rss,
   Search as SearchIcon,
-  Bookmark as BookmarkIconLucide,
   RotateCcw,
   X,
   Pipette,
   CheckCircle2,
   Circle,
-  Plus,
-  Trash2,
   Terminal,
   Check,
-  Pencil,
 } from "lucide-react";
 import "./Settings.css";
 
@@ -269,6 +266,14 @@ function AppearanceTab({ settings, updateSetting }) {
           maxLength={24}
         />
       </Row>
+
+      <SectionHeader title="scratchpad" />
+      <Row label="Show scratchpad" hint="in-tab notes buffer">
+        <Toggle
+          value={settings.showScratchpad ?? true}
+          onChange={(v) => updateSetting("showScratchpad", v)}
+        />
+      </Row>
     </div>
   );
 }
@@ -376,224 +381,12 @@ function SearchTab({ settings, updateSetting }) {
   );
 }
 
-// ── Tab: Bookmarks ────────────────────────────────────────────────
-const AVAILABLE_ICON_KEYS = AVAILABLE_BOOKMARK_ICONS;
-
-function BookmarksTab({ settings, updateSetting }) {
-  const [form, setForm] = useState({ icon: "favicon", label: "", url: "" });
-  const [editingId, setEditingId] = useState(null);
-  const [error, setError] = useState("");
-  const formRef = useRef(null);
-
-  function startEdit(bm) {
-    setEditingId(bm.id);
-    setForm({
-      icon: bm.icon || "favicon",
-      label: bm.label || "",
-      url: bm.url || "",
-    });
-    setError("");
-    formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
-  }
-
-  function cancelEdit() {
-    setEditingId(null);
-    setForm({ icon: "favicon", label: "", url: "" });
-    setError("");
-  }
-
-  function handleSubmit(e) {
-    if (e) e.preventDefault();
-    if (!form.label.trim() || !form.url.trim()) {
-      setError("Label and URL are required.");
-      return;
-    }
-
-    let formattedUrl = form.url.trim();
-    if (
-      !formattedUrl.startsWith("http://") &&
-      !formattedUrl.startsWith("https://")
-    ) {
-      formattedUrl = `https://${formattedUrl}`;
-    }
-
-    try {
-      new URL(formattedUrl);
-    } catch {
-      setError("Enter a valid URL (include https://).");
-      return;
-    }
-
-    if (editingId) {
-      const updated = settings.bookmarks.map((bm) =>
-        bm.id === editingId
-          ? {
-              ...bm,
-              icon: form.icon,
-              label: form.label.trim(),
-              url: formattedUrl,
-            }
-          : bm,
-      );
-      updateSetting("bookmarks", updated);
-      setEditingId(null);
-    } else {
-      const newBookmark = {
-        id: Date.now().toString(),
-        icon: form.icon,
-        label: form.label.trim(),
-        url: formattedUrl,
-      };
-      updateSetting("bookmarks", [...settings.bookmarks, newBookmark]);
-    }
-
-    setForm({ icon: "favicon", label: "", url: "" });
-    setError("");
-  }
-
-  function removeBookmark(id) {
-    if (editingId === id) {
-      cancelEdit();
-    }
-    updateSetting(
-      "bookmarks",
-      settings.bookmarks.filter((b) => b.id !== id),
-    );
-  }
-
-  return (
-    <div className="s-tab-content">
-      <div className="s-bm-form-header" ref={formRef}>
-        <SectionHeader title={editingId ? "edit bookmark" : "add bookmark"} />
-        {editingId && (
-          <button
-            className="s-bm-cancel-link"
-            type="button"
-            onClick={cancelEdit}
-            title="Cancel editing"
-          >
-            cancel edit
-          </button>
-        )}
-      </div>
-
-      <div className="s-bm-icon-picker">
-        {AVAILABLE_ICON_KEYS.map((key) => (
-          <button
-            key={key}
-            type="button"
-            className={`s-icon-btn ${form.icon === key ? "active" : ""} ${
-              key === "favicon" ? "s-icon-btn-favicon" : ""
-            }`}
-            onClick={() => setForm((f) => ({ ...f, icon: key }))}
-            title={key === "favicon" ? "Website Favicon (Auto)" : key}
-          >
-            <BookmarkIcon name={key} url={form.url} size={15} />
-          </button>
-        ))}
-      </div>
-
-      <div className="s-bm-form">
-        <input
-          className="s-input"
-          placeholder="Label (e.g. HackTricks)"
-          value={form.label}
-          onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSubmit(e);
-          }}
-          maxLength={24}
-        />
-        <input
-          className="s-input"
-          placeholder="URL (https://...)"
-          value={form.url}
-          onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSubmit(e);
-          }}
-        />
-        {form.icon === "favicon" && form.url && (
-          <div className="s-bm-favicon-preview">
-            <span className="s-hint">Favicon preview:</span>
-            <BookmarkIcon name="favicon" url={form.url} size={16} />
-          </div>
-        )}
-        {error && <p className="s-error">{error}</p>}
-        <div className="s-bm-form-actions">
-          <button
-            className="s-btn-primary"
-            type="button"
-            onClick={handleSubmit}
-          >
-            {editingId ? <Check size={14} /> : <Plus size={14} />}
-            <span>{editingId ? "Save changes" : "Add bookmark"}</span>
-          </button>
-          {editingId && (
-            <button
-              className="s-btn-secondary"
-              type="button"
-              onClick={cancelEdit}
-            >
-              <X size={14} />
-              <span>Cancel</span>
-            </button>
-          )}
-        </div>
-      </div>
-
-      <SectionHeader title="current bookmarks" />
-      <ul className="s-bm-list">
-        {settings.bookmarks.map((bm) => {
-          const isEditing = bm.id === editingId;
-          return (
-            <li
-              key={bm.id}
-              className={`s-bm-item ${isEditing ? "editing" : ""}`}
-            >
-              <span className="s-bm-icon">
-                <BookmarkIcon name={bm.icon} url={bm.url} size={14} />
-              </span>
-              <span className="s-bm-label">{bm.label}</span>
-              <span className="s-bm-url" title={bm.url}>
-                {bm.url}
-              </span>
-              <div className="s-bm-item-actions">
-                <button
-                  className={`s-bm-action-btn ${isEditing ? "active" : ""}`}
-                  type="button"
-                  onClick={() => (isEditing ? cancelEdit() : startEdit(bm))}
-                  title={isEditing ? "Cancel edit" : "Edit bookmark"}
-                >
-                  <Pencil size={13} />
-                </button>
-                <button
-                  className="s-bm-action-btn s-bm-remove"
-                  type="button"
-                  onClick={() => removeBookmark(bm.id)}
-                  title="Remove bookmark"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-            </li>
-          );
-        })}
-        {settings.bookmarks.length === 0 && (
-          <li className="s-empty">No bookmarks yet.</li>
-        )}
-      </ul>
-    </div>
-  );
-}
-
 // ── Main Settings Panel ───────────────────────────────────────────
 const TABS = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "clock", label: "Clock", icon: ClockIcon },
   { id: "feed", label: "Feed", icon: Rss },
   { id: "search", label: "Search", icon: SearchIcon },
-  { id: "bookmarks", label: "Bookmarks", icon: BookmarkIconLucide },
 ];
 
 export default function Settings({ open, onClose }) {
@@ -602,9 +395,23 @@ export default function Settings({ open, onClose }) {
   const { reset } = useSettings();
   const [activeTab, setActiveTab] = useState("appearance");
 
+  // Lock background scrolling while settings drawer is open
+  useLockBodyScroll(open);
+
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") {
+        onClose();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [open, onClose]);
+
   if (!open) return null;
 
-  return (
+  const content = (
     <>
       {/* Backdrop */}
       <div className="s-backdrop" onClick={onClose} />
@@ -670,9 +477,6 @@ export default function Settings({ open, onClose }) {
           {activeTab === "search" && (
             <SearchTab settings={settings} updateSetting={updateSetting} />
           )}
-          {activeTab === "bookmarks" && (
-            <BookmarksTab settings={settings} updateSetting={updateSetting} />
-          )}
         </div>
 
         {/* Footer */}
@@ -684,4 +488,8 @@ export default function Settings({ open, onClose }) {
       </aside>
     </>
   );
+
+  return typeof document !== "undefined"
+    ? createPortal(content, document.body)
+    : content;
 }

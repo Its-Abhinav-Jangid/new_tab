@@ -67,6 +67,10 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+body.modal-open {
+  overflow: hidden !important;
+}
+
 a {
   color: inherit;
   text-decoration: none;
@@ -76,6 +80,30 @@ button {
   cursor: pointer;
   border: none;
   background: none;
+}
+
+/* ── Keyboard Focus Accessibility ── */
+:focus-visible {
+  outline: 2px solid var(--accent, #7dcfff);
+  outline-offset: 2px;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent, #7dcfff);
+  outline-offset: 2px;
+}
+
+/* Remove tap highlight on mobile touch */
+@media (hover: none),
+(pointer: coarse),
+(max-width: 860px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
 }
 
 /* ── App Shell ── */
@@ -120,6 +148,14 @@ button {
   padding-bottom: 32px;
 }
 
+.app-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: sticky;
+  top: 20px;
+}
+
 /* ── Responsive Breakpoints ── */
 @media (max-width: 860px) {
   .app-main {
@@ -133,6 +169,8 @@ button {
   .app-sidebar {
     width: 100%;
     min-width: 0;
+    position: static;
+    gap: 12px;
   }
 
   .app-feed {
@@ -176,8 +214,14 @@ button {
   letter-spacing: 0.5px;
 }
 
-/* ── Settings gear ── */
-.settings-gear {
+/* ── Header Actions ── */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-btn {
   color: var(--text-muted);
   width: 34px;
   height: 34px;
@@ -185,16 +229,84 @@ button {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, background 0.15s, transform 0.35s, border-color 0.15s;
+  transition: color 0.15s, background 0.15s, transform 0.25s, border-color 0.15s;
   background: transparent;
   border: 1px solid transparent;
+  position: relative;
+  cursor: pointer;
 }
 
-.settings-gear:hover {
+.header-btn:hover {
   color: var(--accent);
   background: var(--bg-card);
   border-color: var(--border);
-  transform: rotate(45deg);
+}
+
+.header-btn.active {
+  color: var(--accent);
+  background: var(--bg-card);
+  border-color: var(--accent);
+}
+
+.header-btn-dot {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent, var(--cyan));
+  box-shadow: 0 0 6px var(--accent, var(--cyan));
+}
+
+
+/* ── Sleek Hacker Tooltips ── */
+[data-tooltip] {
+  position: relative;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  [data-tooltip]::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    top: calc(100% + 7px);
+    left: 50%;
+    transform: translateX(-50%) translateY(4px);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s ease;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.45);
+    z-index: 1000;
+  }
+
+  [data-tooltip]:hover::before,
+  [data-tooltip]:focus-visible::before {
+    opacity: 1;
+    visibility: visible;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* Rightmost header button: align tooltip right so it doesn't overflow viewport */
+  .header-actions .header-btn:last-child[data-tooltip]::before {
+    left: auto;
+    right: 0;
+    transform: translateY(4px);
+  }
+
+  .header-actions .header-btn:last-child[data-tooltip]:hover::before,
+  .header-actions .header-btn:last-child[data-tooltip]:focus-visible::before {
+    transform: translateY(0);
+  }
 }
 
 /* ── Scrollbar ── */

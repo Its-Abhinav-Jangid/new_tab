@@ -11,6 +11,7 @@
   justify-content: center;
   z-index: 1000;
   padding: 18px;
+  touch-action: none;
   animation: welcomeFadeIn 0.22s ease-out;
 }
 
@@ -30,6 +31,7 @@
   flex-direction: column;
   align-items: center;
   text-align: center;
+  overscroll-behavior: contain;
 }
 
 .welcome-icon-badge {
