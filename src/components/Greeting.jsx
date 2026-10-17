@@ -2,6 +2,27 @@ import { useState, useEffect, useCallback } from "react";
 import { useSettings } from "../context/SettingsContext";
 import "./Greeting.css";
 
+const WITTY_ONLINE_QUOTES = [
+  "caffeine levels nominal · ready to break things responsibly",
+  "there's no place like 127.0.0.1",
+  "it's not a bug, it's an undocumented security feature",
+  "sudo make me coffee · 0 exploits detected in cup",
+  "drink water, fix that syntax error, hack the planet",
+  "why do programmers prefer dark mode? light attracts bugs",
+  "never trust a computer you can't throw out a window",
+  "keyboard ready · fingers warm · ready to query the void",
+  "remember to lock your screen before grabbing snacks",
+  "404: social battery not found · running on pure caffeine",
+  "pro tip: backups only exist once you've successfully restored them",
+];
+
+const WITTY_OFFLINE_QUOTES = [
+  "no internet · time to actually read RFC 1149 (IP over Avian Carriers)",
+  "offline · did someone trip over the router cable again?",
+  "network down · step outside and enjoy the ultra-high-res graphics",
+  "no connection · the simulation is buffering",
+];
+
 function getTimeGreeting() {
   const h = new Date().getHours();
   if (h >= 5 && h < 12) return "Good morning";
@@ -13,6 +34,9 @@ function getTimeGreeting() {
 export default function Greeting() {
   const [settings] = useSettings();
   const [salutation, setSalutation] = useState(getTimeGreeting);
+  const [quoteIndex, setQuoteIndex] = useState(() =>
+    Math.floor(Math.random() * WITTY_ONLINE_QUOTES.length),
+  );
   const [networkStatus, setNetworkStatus] = useState({
     online: typeof navigator !== "undefined" ? navigator.onLine : true,
     latency: null,
@@ -93,6 +117,12 @@ export default function Greeting() {
   const isChecking = networkStatus.checking;
   const latency = networkStatus.latency;
 
+  const quoteList = isOnline ? WITTY_ONLINE_QUOTES : WITTY_OFFLINE_QUOTES;
+  const activeQuote = quoteList[quoteIndex % quoteList.length];
+  const cycleQuote = () => {
+    setQuoteIndex((prev) => (prev + 1) % quoteList.length);
+  };
+
   return (
     <div className="greeting-container">
       {/* Real Network Status HUD Tag */}
@@ -114,18 +144,22 @@ export default function Greeting() {
           {isChecking
             ? "NETWORK // CHECKING..."
             : isOnline
-            ? "NETWORK // ONLINE"
-            : "NETWORK // OFFLINE"}
+              ? "NETWORK // ONLINE"
+              : "NETWORK // OFFLINE"}
         </span>
         {isOnline && latency !== null && (
           <>
-            <span className="greeting-hud-sep" aria-hidden="true">|</span>
+            <span className="greeting-hud-sep" aria-hidden="true">
+              |
+            </span>
             <span className="greeting-hud-latency">{latency}ms</span>
           </>
         )}
         {!isOnline && !isChecking && (
           <>
-            <span className="greeting-hud-sep" aria-hidden="true">|</span>
+            <span className="greeting-hud-sep" aria-hidden="true">
+              |
+            </span>
             <span className="greeting-hud-offline-tag">DISCONNECTED</span>
           </>
         )}
@@ -133,20 +167,25 @@ export default function Greeting() {
 
       {/* Main Hero Title */}
       <h1 className="greeting-title">
-        <span className="greeting-prompt" aria-hidden="true">&gt;&nbsp;</span>
+        <span className="greeting-prompt" aria-hidden="true">
+          &gt;&nbsp;
+        </span>
         <span className="greeting-salutation">{salutation},&nbsp;</span>
         <span className="greeting-name">{greetingName}</span>
-        <span className="greeting-cursor" aria-hidden="true">_</span>
+        <span className="greeting-cursor" aria-hidden="true">
+          _
+        </span>
       </h1>
 
-      {/* Subline Terminal Comment */}
-      <div className="greeting-sub">
-        <span className="greeting-sub-text">
-          {isOnline
-            ? "// internet connected · ready to search"
-            : "// no network connection · offline mode"}
-        </span>
-      </div>
+      {/* Subline Terminal Comment with interactive witty quote cycling */}
+      <button
+        type="button"
+        className="greeting-sub"
+        onClick={cycleQuote}
+        title="Click for another thought ↻"
+      >
+        <span className="greeting-sub-text">{`// ${activeQuote}`}</span>
+      </button>
     </div>
   );
 }

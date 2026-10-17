@@ -51,7 +51,7 @@ export default function Clock() {
   const second = String(now.getSeconds()).padStart(2, "0");
 
   return (
-    <div className="clock">
+    <div className="clock" title="Time is an illusion. Coffee doubly so.">
       <div className="clock-time">
         <span className="clock-hhmm">
           {hour}:{minute}

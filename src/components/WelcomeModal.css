@@ -1,0 +1,207 @@
+/* ── Welcome Onboarding Modal ── */
+
+.welcome-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 17, 26, 0.82);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 18px;
+  animation: welcomeFadeIn 0.22s ease-out;
+}
+
+.welcome-modal {
+  position: relative;
+  background: var(--bg-surface, #1f2335);
+  border: 1px solid var(--border-bright, #292e42);
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.55),
+    0 0 35px rgba(125, 207, 255, 0.08);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  padding: 32px 28px 26px;
+  animation: welcomeSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.welcome-icon-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  background: rgba(125, 207, 255, 0.1);
+  border: 1px solid rgba(125, 207, 255, 0.25);
+  color: var(--accent, #7dcfff);
+  box-shadow: 0 0 20px rgba(125, 207, 255, 0.2);
+  margin-bottom: 18px;
+}
+
+.welcome-title {
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary, #c0caf5);
+  letter-spacing: 0.3px;
+  margin: 0 0 8px 0;
+}
+
+.welcome-description {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  color: var(--text-secondary, #7aa2f7);
+  line-height: 1.5;
+  margin: 0 0 24px 0;
+  max-width: 360px;
+}
+
+.welcome-form {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.welcome-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.welcome-label {
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted, #565f89);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.welcome-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg-card, #24283b);
+  border: 1px solid var(--border, #292e42);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary, #c0caf5);
+  outline: none;
+  transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+}
+
+.welcome-input::placeholder {
+  color: var(--text-muted, #565f89);
+  opacity: 0.7;
+}
+
+.welcome-input:focus {
+  border-color: var(--accent, #7dcfff);
+  background: rgba(36, 40, 59, 0.95);
+  box-shadow: 0 0 0 3px rgba(125, 207, 255, 0.18);
+}
+
+.welcome-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.welcome-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--accent, #7dcfff);
+  color: #1a1b26;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(125, 207, 255, 0.25);
+  transition: filter 0.15s, transform 0.12s, box-shadow 0.15s;
+}
+
+.welcome-btn-primary:hover {
+  filter: brightness(1.1);
+  box-shadow: 0 6px 18px rgba(125, 207, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.welcome-btn-primary:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.welcome-btn-skip {
+  background: none;
+  border: none;
+  color: var(--text-muted, #565f89);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  cursor: pointer;
+  padding: 6px;
+  transition: color 0.15s;
+}
+
+.welcome-btn-skip:hover {
+  color: var(--text-secondary, #7aa2f7);
+  text-decoration: underline;
+}
+
+.welcome-hint {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  color: var(--text-muted, #565f89);
+  margin: 4px 0 0 0;
+}
+
+@keyframes welcomeFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes welcomeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .welcome-modal {
+    padding: 24px 18px 20px;
+  }
+
+  .welcome-title {
+    font-size: 19px;
+  }
+
+  .welcome-description {
+    font-size: 13px;
+    margin-bottom: 18px;
+  }
+}

@@ -155,7 +155,17 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 2px 8px;
+  padding: 4px 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.greeting-sub:hover {
+  background: rgba(122, 162, 247, 0.08);
+  border-color: rgba(122, 162, 247, 0.2);
 }
 
 .greeting-sub-text {
@@ -164,10 +174,11 @@
   color: var(--text-muted);
   letter-spacing: 0.7px;
   transition: color 0.2s;
+  user-select: none;
 }
 
-.greeting-sub-text:hover {
-  color: var(--text-secondary);
+.greeting-sub:hover .greeting-sub-text {
+  color: var(--accent, var(--cyan));
 }
 
 /* ── Keyframe Animations ─────────────────────────────────────────── */

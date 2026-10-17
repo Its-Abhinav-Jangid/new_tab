@@ -7,10 +7,23 @@ import SearchBar from "./components/SearchBar";
 import WriteupFeed from "./components/WriteupFeed";
 import Bookmarks from "./components/Bookmarks";
 import Settings from "./components/Settings";
+import WelcomeModal from "./components/WelcomeModal";
 import { Settings as SettingsIcon } from "lucide-react";
+
+const FOOTER_PUNCHLINES = [
+  "// hacker tab — stay sharp · your FBI agent gives this setup 10/10",
+  "// hacker tab — there is no cloud, just someone else's computer",
+  "// hacker tab — with great root access comes great responsibility",
+  "// hacker tab — built with curiosity, caffeine, and questionable regex",
+  "// hacker tab — git commit -m 'fixed bug, created 2 cooler ones'",
+  "// hacker tab — keep calm and chmod +x everything",
+];
 
 function AppShell() {
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [footerQuote] = useState(() =>
+    FOOTER_PUNCHLINES[Math.floor(Math.random() * FOOTER_PUNCHLINES.length)]
+  );
 
   return (
     <div className="app">
@@ -45,11 +58,14 @@ function AppShell() {
 
       {/* Footer */}
       <footer className="app-footer">
-        <span className="footer-text">{'// hacker tab — stay sharp'}</span>
+        <span className="footer-text">{footerQuote}</span>
       </footer>
 
       {/* Settings drawer */}
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+
+      {/* First-time welcome modal */}
+      <WelcomeModal />
     </div>
   );
 }

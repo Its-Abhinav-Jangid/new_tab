@@ -1,6 +1,12 @@
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useSettings } from "../context/SettingsContext";
-import { Terminal, CornerDownLeft, Search, ArrowUpRight, Bookmark } from "lucide-react";
+import {
+  Terminal,
+  CornerDownLeft,
+  Search,
+  ArrowUpRight,
+  Bookmark,
+} from "lucide-react";
 import SearchEngineLogo from "./SearchEngineLogo";
 import BookmarkIcon from "./BookmarkIcon";
 import { fetchGoogleSuggestions } from "../utils/searchSuggestions";
@@ -12,6 +18,30 @@ const ENGINES = [
   { label: "Shodan", prefix: "https://www.shodan.io/search?query=" },
   { label: "GitHub", prefix: "https://github.com/search?q=" },
 ];
+
+const ENGINE_PLACEHOLDERS = {
+  Google: [
+    "Search Google (Stack Overflow is waiting)...",
+    "Search Google (just to read AI summary)",
+
+    "Search Google · check page 2 only if truly desperate...",
+  ],
+  DuckDuckGo: [
+    "Search DuckDuckGo with zero creepy trackers...",
+    "Search DuckDuckGo · incognito mode squared...",
+    "Search DuckDuckGo · keeping your queries strictly confidential...",
+  ],
+  Shodan: [
+    "Query Shodan for exposed coffee makers & webcams...",
+    "Search Shodan · please don't touch the centrifuges...",
+    "Scan Shodan for devices that shouldn't be online...",
+  ],
+  GitHub: [
+    "Search GitHub for code to copy-paste responsibly...",
+    "Search GitHub for abandoned repos with 5k stars...",
+    "Find a repo that does what you spent 3 days writing...",
+  ],
+};
 
 export default function SearchBar() {
   const { settings } = useSettings();
@@ -30,6 +60,14 @@ export default function SearchBar() {
       setEngine(settings.defaultEngine);
     }
   }, [settings?.defaultEngine]);
+
+  const currentEngineLabel = ENGINES[engine]?.label || "Google";
+  const placeholder = useMemo(() => {
+    const list = ENGINE_PLACEHOLDERS[currentEngineLabel] || [
+      `Search ${currentEngineLabel}...`,
+    ];
+    return list[Math.floor(Math.random() * list.length)];
+  }, [currentEngineLabel]);
 
   // Outside click listener to dismiss dropdown
   useEffect(() => {
@@ -183,7 +221,9 @@ export default function SearchBar() {
     return (
       <>
         {text.substring(0, idx)}
-        <span className="suggestion-matched">{text.substring(idx, idx + q.length)}</span>
+        <span className="suggestion-matched">
+          {text.substring(idx, idx + q.length)}
+        </span>
         {text.substring(idx + q.length)}
       </>
     );
@@ -222,7 +262,7 @@ export default function SearchBar() {
           ref={inputRef}
           className="search-input"
           type="text"
-          placeholder={`Search ${ENGINES[engine]?.label || "web"}...`}
+          placeholder={placeholder}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => {
@@ -277,7 +317,13 @@ export default function SearchBar() {
                     </span>
                   )}
                   <span className="suggestion-action-hint">
-                    {isBookmark ? <ArrowUpRight size={13} /> : isActive ? "↵" : ""}
+                    {isBookmark ? (
+                      <ArrowUpRight size={13} />
+                    ) : isActive ? (
+                      "↵"
+                    ) : (
+                      ""
+                    )}
                   </span>
                 </li>
               );

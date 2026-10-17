@@ -214,11 +214,13 @@ export default function WriteupFeed() {
       <div className="feed-header">
         <div className="feed-title-wrap">
           <Rss size={14} className="feed-header-icon" />
-          <span className="feed-title">{"// bug bounty writeups"}</span>
+          <span className="feed-title">
+            {"// bug bounty writeups · how others got bounties while you slept"}
+          </span>
         </div>
         <span className="feed-source">
           {enabledSources.length} source{enabledSources.length !== 1 ? "s" : ""}{" "}
-          configured
+          streaming
         </span>
       </div>
 
@@ -257,17 +259,19 @@ export default function WriteupFeed() {
 
       {loading && (
         <div className="feed-status">
-          <span className="blink">█</span> fetching latest writeups from sources...
+          <span className="blink">█</span> intercepting latest writeups from the matrix...
         </div>
       )}
 
       {error && !loading && (
-        <div className="feed-status feed-error">[ERR] {error}</div>
+        <div className="feed-status feed-error">
+          [ERR] {error} · (maybe the server needs more coffee)
+        </div>
       )}
 
       {!loading && !error && items.length === 0 && (
         <div className="feed-status">
-          No feeds enabled. Open Settings ⚙ to enable bug bounty sources.
+          No feeds enabled. Open Settings ⚙ to feed your brain with fresh exploits.
         </div>
       )}
 
