@@ -228,15 +228,30 @@
 }
 
 @media (max-width: 640px) {
-  .greeting-title {
-    font-size: 27px;
-    letter-spacing: 1px;
+  .greeting-container {
+    gap: 9px;
+    padding: 2px 8px;
   }
+
+  .greeting-title {
+    font-size: clamp(23px, 6.2vw, 30px);
+    letter-spacing: 0.8px;
+    line-height: 1.2;
+  }
+
   .greeting-hud-pill {
     padding: 3px 10px;
     gap: 6px;
   }
+
+  .greeting-hud-system,
+  .greeting-hud-latency,
+  .greeting-hud-offline-tag {
+    font-size: 9.5px;
+  }
+
   .greeting-sub-text {
-    font-size: 11px;
+    font-size: 10.5px;
   }
 }
+

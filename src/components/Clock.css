@@ -42,9 +42,23 @@
   letter-spacing: 1px;
 }
 
-.clock-greeting {
-  font-family: var(--font-display);
-  font-size: 11px;
-  color: var(--text-muted);
-  letter-spacing: 0.5px;
+@media (max-width: 640px) {
+  .clock-hhmm {
+    font-size: 24px;
+    letter-spacing: 1.5px;
+  }
+
+  .clock-ss {
+    font-size: 12px;
+  }
+
+  .clock-ampm {
+    font-size: 11px;
+  }
+
+  .clock-date {
+    font-size: 10px;
+    letter-spacing: 0.5px;
+  }
 }
+

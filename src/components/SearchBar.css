@@ -249,3 +249,55 @@
     transform: translateY(0);
   }
 }
+
+@media (max-width: 640px) {
+  .search-wrapper,
+  .search-form {
+    gap: 8px;
+  }
+
+  .engine-btn {
+    width: 32px;
+    height: 28px;
+  }
+
+  .search-row {
+    padding: 0 12px;
+  }
+
+  .search-prompt {
+    margin-right: 8px;
+  }
+
+  .search-input {
+    font-size: 14px;
+    padding: 11px 0;
+  }
+
+  .search-suggestions-dropdown {
+    max-height: 250px;
+    top: calc(100% + 5px);
+  }
+
+  .suggestion-item {
+    padding: 8px 12px;
+    font-size: 13px;
+    gap: 9px;
+  }
+
+  .search-dropdown-footer {
+    padding: 5px 12px;
+    font-size: 9.5px;
+  }
+
+  .dropdown-engine-hint {
+    display: none;
+  }
+}
+
+@media (max-width: 440px) {
+  .dropdown-keys-hint span:nth-child(n+5) {
+    display: none;
+  }
+}
+
