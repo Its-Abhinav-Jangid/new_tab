@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSettings } from "../context/SettingsContext";
 import "./Clock.css";
+import useDelayedUnmount from "../hooks/useDelayedUnmount";
 
 const DAYS = [
   "Sunday",
@@ -25,8 +26,6 @@ const MONTHS = [
   "Nov",
   "Dec",
 ];
-
-import useDelayedUnmount from "../hooks/useDelayedUnmount";
 
 export default function Clock() {
   const [settings] = useSettings();
