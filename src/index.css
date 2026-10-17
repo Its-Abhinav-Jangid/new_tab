@@ -1,34 +1,60 @@
+/* ═══════════════════════════════════════════════════════
+   HackTricks-inspired theme — dark navy + cyan accents
+═══════════════════════════════════════════════════════ */
+
+/* Load HackTricks fonts */
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+
 /* ── CSS Variables ── */
 :root {
-  --bg-primary:    #0a0e14;
-  --bg-secondary:  #0d1117;
-  --bg-card:       #161b22;
-  --bg-card-hover: #1c2333;
-  --border:        #21262d;
+  /* Backgrounds — deep navy, not pure black */
+  --bg-primary:    #1a1b26;
+  --bg-secondary:  #16172a;
+  --bg-card:       #1f2133;
+  --bg-card-hover: #262840;
+  --bg-header:     #13141f;
+  --border:        #2a2d4a;
+  --border-bright: #3d4070;
 
-  --green:         #39d353;
-  --green-dim:     #1a6329;
-  --cyan:          #58a6ff;
-  --purple:        #bc8cff;
-  --orange:        #f78166;
-  --yellow:        #e3b341;
+  /* Accent palette */
+  --green:        #39d353;
+  --green-dim:    #1a5c2a;
+  --cyan:         #7dcfff;
+  --cyan-dim:     #1e4a6e;
+  --purple:       #bb9af7;
+  --orange:       #ff9e64;
+  --yellow:       #e0af68;
+  --red:          #f7768e;
+  --blue:         #7aa2f7;
 
-  --text-primary:   #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted:     #484f58;
+  /* Default accent (overridden by settings) */
+  --accent: #7dcfff;
 
-  --font-mono: 'Fira Code', 'Cascadia Code', 'Courier New', monospace;
-  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  /* Text */
+  --text-primary:   #cdd6f4;
+  --text-secondary: #a9b1d6;
+  --text-muted:     #565f89;
 
-  --radius: 8px;
+  /* Fonts — HackTricks style */
+  --font-display: 'Chakra Petch', 'Inter', sans-serif;
+  --font-mono:    'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+  --font-sans:    'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  --radius:    8px;
   --radius-sm: 4px;
+  --radius-lg: 12px;
 }
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* ── Body with HackTricks-style background ── */
 body {
-  background: var(--bg-primary);
+  background-color: var(--bg-primary);
+  /* Subtle dot-grid pattern — signature HackTricks dark look */
+  background-image:
+    radial-gradient(circle, rgba(122, 162, 247, 0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
@@ -43,34 +69,41 @@ button { cursor: pointer; border: none; background: none; }
   display: grid;
   grid-template-rows: auto auto 1fr auto;
   min-height: 100vh;
-  max-width: 1400px;
+  max-width: 1440px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 28px;
 }
 
-/* ── Header ── */
+/* ── Header — solid strip to anchor the page ── */
 .app-header {
-  padding: 20px 0 8px;
+  padding: 18px 0 14px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid var(--border);
+  /* Subtle glow underneath the header line */
+  box-shadow: 0 1px 0 0 rgba(125, 207, 255, 0.04);
 }
 
-/* ── Search ── */
+/* ── Centerpiece Hero (Greeting + Search) ── */
+.app-hero,
 .app-search {
-  padding: 28px 0 20px;
+  padding: 38px 0 26px;
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  gap: 22px;
+  width: 100%;
 }
 
-/* ── Main ── */
+/* ── Main layout ── */
 .app-main {
   display: grid;
-  grid-template-columns: 220px 1fr;
+  grid-template-columns: 230px 1fr;
   gap: 24px;
   align-items: start;
-  padding-bottom: 24px;
+  padding-bottom: 32px;
 }
 
 /* ── Footer ── */
@@ -82,33 +115,33 @@ button { cursor: pointer; border: none; background: none; }
 
 .footer-text {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
+  letter-spacing: 0.5px;
 }
 
-/* ── Settings gear button ── */
+/* ── Settings gear ── */
 .settings-gear {
-  font-size: 20px;
   color: var(--text-muted);
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.15s, background 0.15s, transform 0.3s;
+  transition: color 0.15s, background 0.15s, transform 0.35s, border-color 0.15s;
   background: transparent;
   border: 1px solid transparent;
 }
 .settings-gear:hover {
-  color: var(--accent, var(--green));
+  color: var(--accent);
   background: var(--bg-card);
   border-color: var(--border);
   transform: rotate(45deg);
 }
 
 /* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }

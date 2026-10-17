@@ -2,6 +2,7 @@ import { useState } from "react";
 import "./App.css";
 import { SettingsProvider } from "./context/SettingsContext";
 import Clock from "./components/Clock";
+import Greeting from "./components/Greeting";
 import SearchBar from "./components/SearchBar";
 import WriteupFeed from "./components/WriteupFeed";
 import Bookmarks from "./components/Bookmarks";
@@ -26,8 +27,9 @@ function AppShell() {
         </button>
       </header>
 
-      {/* Center: search */}
-      <section className="app-search">
+      {/* Centerpiece: Greeting + Search */}
+      <section className="app-hero">
+        <Greeting />
         <SearchBar />
       </section>
 

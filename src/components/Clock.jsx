@@ -26,13 +26,6 @@ const MONTHS = [
   "Dec",
 ];
 
-function greet() {
-  const h = new Date().getHours();
-  if (h < 12) return "Good morning";
-  if (h < 17) return "Good afternoon";
-  return "Good evening";
-}
-
 export default function Clock() {
   const [settings] = useSettings();
   const [now, setNow] = useState(new Date());
@@ -45,8 +38,6 @@ export default function Clock() {
   const timeFormat = settings?.timeFormat || "24h";
   const showSeconds = settings?.showSeconds ?? true;
   const showDate = settings?.showDate ?? true;
-  const showGreeting = settings?.showGreeting ?? true;
-  const greetingName = settings?.greetingName || "hacker";
 
   let rawHours = now.getHours();
   let ampm = "";
@@ -72,11 +63,6 @@ export default function Clock() {
         <div className="clock-date">
           {DAYS[now.getDay()]}, {MONTHS[now.getMonth()]} {now.getDate()}{" "}
           {now.getFullYear()}
-        </div>
-      )}
-      {showGreeting && (
-        <div className="clock-greeting">
-          {greet()}, {greetingName}.
         </div>
       )}
     </div>

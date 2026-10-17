@@ -1,47 +1,50 @@
 .clock {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
 .clock-time {
   display: flex;
   align-items: baseline;
-  gap: 4px;
+  gap: 6px;
 }
 
 .clock-hhmm {
-  font-family: var(--font-mono);
-  font-size: 32px;
+  font-family: var(--font-display);
+  font-size: 34px;
   font-weight: 700;
-  color: var(--accent, var(--green));
-  letter-spacing: 2px;
+  color: var(--accent, var(--cyan));
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px rgba(125, 207, 255, 0.25);
 }
 
 .clock-ss {
   font-family: var(--font-mono);
-  font-size: 16px;
-  color: var(--green-dim);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-muted);
   letter-spacing: 1px;
 }
 
 .clock-ampm {
   font-family: var(--font-mono);
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 600;
-  color: var(--accent, var(--green));
-  margin-left: 4px;
+  color: var(--accent, var(--cyan));
+  margin-left: 2px;
 }
 
 .clock-date {
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-secondary);
   letter-spacing: 1px;
 }
 
 .clock-greeting {
-  font-size: 12px;
+  font-family: var(--font-display);
+  font-size: 11px;
   color: var(--text-muted);
-  font-style: italic;
+  letter-spacing: 0.5px;
 }

@@ -23,7 +23,7 @@ export default function Bookmarks() {
               rel="noopener noreferrer"
             >
               <span className="bookmark-icon">
-                <BookmarkIcon name={bm.icon} size={15} />
+                <BookmarkIcon name={bm.icon} url={bm.url} size={15} />
               </span>
               <span className="bookmark-label">{bm.label}</span>
               <span className="bookmark-arrow">

@@ -1,9 +1,11 @@
+.search-wrapper,
 .search-form {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  max-width: 640px;
+  max-width: 660px;
 }
 
 .search-engines {
@@ -13,49 +15,57 @@
 }
 
 .engine-btn {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  padding: 4px 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  padding: 0;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  color: var(--text-secondary);
+  color: var(--text-muted);
   background: var(--bg-card);
+  cursor: pointer;
   transition: all 0.15s;
 }
 
 .engine-btn:hover {
-  border-color: var(--green-dim);
-  color: var(--accent, var(--green));
+  border-color: var(--accent, var(--cyan));
+  color: var(--text-primary);
+  background: rgba(125, 207, 255, 0.06);
+  transform: translateY(-1px);
 }
 
 .engine-btn.active {
-  border-color: var(--accent, var(--green));
-  color: var(--accent, var(--green));
-  background: var(--bg-card-hover);
+  border-color: var(--accent, var(--cyan));
+  color: var(--accent, var(--cyan));
+  background: rgba(125, 207, 255, 0.12);
+  box-shadow: 0 0 10px rgba(125, 207, 255, 0.18);
 }
 
 .search-row {
   display: flex;
   align-items: center;
   background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0 14px;
-  transition: border-color 0.2s;
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-lg);
+  padding: 0 16px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .search-row:focus-within {
-  border-color: var(--accent, var(--green));
-  box-shadow: 0 0 0 2px rgba(57, 211, 83, 0.1);
+  border-color: var(--accent, var(--cyan));
+  box-shadow: 0 0 0 3px rgba(125, 207, 255, 0.08), 0 0 20px rgba(125, 207, 255, 0.05);
 }
 
 .search-prompt {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--accent, var(--green));
-  margin-right: 10px;
+  color: var(--accent, var(--cyan));
+  margin-right: 12px;
   user-select: none;
+  opacity: 0.7;
 }
 
 .search-input {
@@ -63,11 +73,11 @@
   background: transparent;
   border: none;
   outline: none;
-  font-family: var(--font-mono);
+  font-family: var(--font-sans);
   font-size: 15px;
   color: var(--text-primary);
-  padding: 13px 0;
-  caret-color: var(--accent, var(--green));
+  padding: 14px 0;
+  caret-color: var(--accent, var(--cyan));
 }
 
 .search-input::placeholder {
@@ -80,9 +90,162 @@
   justify-content: center;
   color: var(--text-muted);
   padding: 4px;
+  cursor: pointer;
+  border: none;
+  background: transparent;
   transition: color 0.15s;
 }
 
 .search-submit:hover {
-  color: var(--accent, var(--green));
+  color: var(--accent, var(--cyan));
+}
+
+/* ── Suggestions Dropdown ────────────────────────────────────────── */
+
+.search-suggestions-dropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(26, 27, 38, 0.96);
+  border: 1px solid var(--border-bright);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.65), 0 0 25px rgba(125, 207, 255, 0.08);
+  backdrop-filter: blur(14px);
+  z-index: 1000;
+  overflow: hidden;
+  animation: dropdownSlide 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.search-suggestions-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  max-height: 310px;
+  overflow-y: auto;
+}
+
+.suggestion-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 16px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  transition: background 0.1s, color 0.1s;
+}
+
+.suggestion-item:hover,
+.suggestion-item.active {
+  background: rgba(125, 207, 255, 0.09);
+  color: var(--text-primary);
+}
+
+.suggestion-item.active {
+  border-left: 2px solid var(--accent, var(--cyan));
+  padding-left: 14px;
+}
+
+.suggestion-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  flex-shrink: 0;
+  width: 18px;
+}
+
+.suggestion-item.active .suggestion-icon-box {
+  color: var(--accent, var(--cyan));
+}
+
+.suggestion-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggestion-matched {
+  color: var(--accent, var(--cyan));
+  font-weight: 700;
+}
+
+.suggestion-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(125, 207, 255, 0.12);
+  color: var(--accent, var(--cyan));
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.suggestion-action-hint {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent, var(--cyan));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  flex-shrink: 0;
+}
+
+.search-dropdown-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 16px;
+  background: rgba(19, 20, 31, 0.98);
+  border-top: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-muted);
+}
+
+.dropdown-keys-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.key-kbd {
+  display: inline-block;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  font-size: 9px;
+  line-height: 1.2;
+}
+
+.key-sep {
+  color: var(--border-bright);
+  font-size: 9px;
+}
+
+.dropdown-engine-hint {
+  color: var(--text-muted);
+  font-size: 10px;
+}
+
+@keyframes dropdownSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }

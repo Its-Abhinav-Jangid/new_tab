@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSettings } from "../context/SettingsContext";
 import BookmarkIcon, { AVAILABLE_BOOKMARK_ICONS } from "./BookmarkIcon";
+import SearchEngineLogo from "./SearchEngineLogo";
+import { Sketch } from "@uiw/react-color";
 import {
   Palette,
   Clock as ClockIcon,
@@ -15,6 +17,8 @@ import {
   Plus,
   Trash2,
   Terminal,
+  Check,
+  Pencil,
 } from "lucide-react";
 import "./Settings.css";
 
@@ -67,15 +71,69 @@ function Select({ value, onChange, options }) {
 
 // ── Tab: Appearance ───────────────────────────────────────────────
 const ACCENTS = [
-  { label: "Green", value: "#39d353" },
-  { label: "Cyan", value: "#58a6ff" },
-  { label: "Purple", value: "#bc8cff" },
-  { label: "Orange", value: "#f78166" },
-  { label: "Yellow", value: "#e3b341" },
-  { label: "Pink", value: "#f778ba" },
+  { label: "HT Cyan", value: "#7dcfff" },
+  { label: "Blue", value: "#7aa2f7" },
+  { label: "Purple", value: "#bb9af7" },
+  { label: "Green", value: "#9ece6a" },
+  { label: "Orange", value: "#ff9e64" },
+  { label: "Pink", value: "#f7768e" },
 ];
 
 function AppearanceTab({ settings, updateSetting }) {
+  const [showCustomPicker, setShowCustomPicker] = useState(false);
+  const [draftColor, setDraftColor] = useState(settings.accent || "#7dcfff");
+
+  const draftColorRef = useRef(draftColor);
+  draftColorRef.current = draftColor;
+  const showCustomPickerRef = useRef(showCustomPicker);
+  showCustomPickerRef.current = showCustomPicker;
+
+  const isCustom = !ACCENTS.some(
+    (a) => a.value.toLowerCase() === (settings.accent || "").toLowerCase(),
+  );
+
+  // Sync draftColor with settings.accent when picker is NOT open
+  useEffect(() => {
+    if (!showCustomPicker) {
+      setDraftColor(settings.accent || "#7dcfff");
+    }
+  }, [settings.accent, showCustomPicker]);
+
+  // When unmounting (e.g. settings drawer closed), commit the custom color if picker was open
+  useEffect(() => {
+    return () => {
+      if (showCustomPickerRef.current && draftColorRef.current) {
+        updateSetting("accent", draftColorRef.current);
+      }
+    };
+  }, [updateSetting]);
+
+  // Commit and close custom picker
+  const closeAndCommitPicker = () => {
+    if (draftColor) {
+      updateSetting("accent", draftColor);
+    }
+    setShowCustomPicker(false);
+  };
+
+  const openPicker = () => {
+    setDraftColor(settings.accent || "#7dcfff");
+    setShowCustomPicker(true);
+  };
+
+  const togglePicker = () => {
+    if (showCustomPicker) {
+      closeAndCommitPicker();
+    } else {
+      openPicker();
+    }
+  };
+
+  const handlePresetClick = (presetColor) => {
+    setShowCustomPicker(false);
+    updateSetting("accent", presetColor);
+  };
+
   return (
     <div className="s-tab-content">
       <SectionHeader title="accent color" />
@@ -83,22 +141,93 @@ function AppearanceTab({ settings, updateSetting }) {
         {ACCENTS.map((a) => (
           <button
             key={a.value}
-            className={`s-swatch ${settings.accent === a.value ? "active" : ""}`}
+            className={`s-swatch ${
+              settings.accent?.toLowerCase() === a.value.toLowerCase()
+                ? "active"
+                : ""
+            }`}
             style={{ "--swatch": a.value }}
-            onClick={() => updateSetting("accent", a.value)}
+            onClick={() => handlePresetClick(a.value)}
             title={a.label}
             type="button"
           />
         ))}
-        {/* Custom color picker */}
-        <label className="s-swatch s-swatch-custom" title="Custom color">
-          <input
-            type="color"
-            value={settings.accent}
-            onChange={(e) => updateSetting("accent", e.target.value)}
-          />
+        {/* Custom color trigger button */}
+        <button
+          className={`s-swatch s-swatch-custom ${isCustom ? "active" : ""}`}
+          style={isCustom ? { "--swatch": settings.accent } : {}}
+          onClick={togglePicker}
+          title={
+            showCustomPicker ? "Apply & Close Picker" : "Custom Color Palette"
+          }
+          type="button"
+        >
           <Pipette size={13} className="s-pipette-icon" />
-        </label>
+        </button>
+      </div>
+
+      {/* Custom color input & interactive Sketch palette */}
+      <div className="s-custom-picker-section">
+        <div className="s-custom-picker-header">
+          <div className="s-custom-preview-wrap">
+            <span
+              className="s-custom-preview-dot"
+              style={{
+                backgroundColor: showCustomPicker
+                  ? draftColor
+                  : settings.accent,
+              }}
+            />
+            <input
+              type="text"
+              className="s-custom-hex-input"
+              value={
+                showCustomPicker ? draftColor : settings.accent || "#7dcfff"
+              }
+              onChange={(e) => {
+                const val = e.target.value.trim();
+                const formatted = val.startsWith("#") ? val : `#${val}`;
+                if (showCustomPicker) {
+                  setDraftColor(formatted);
+                } else {
+                  updateSetting("accent", formatted);
+                }
+              }}
+              placeholder="#7dcfff"
+              maxLength={9}
+            />
+          </div>
+          <button
+            type="button"
+            className="s-picker-toggle-btn"
+            onClick={togglePicker}
+          >
+            {showCustomPicker ? "Done / Close ▲" : "Custom Picker ▼"}
+          </button>
+        </div>
+
+        {showCustomPicker && (
+          <div className="s-sketch-container">
+            <Sketch
+              color={draftColor}
+              disableAlpha={true}
+              onChange={(color) => {
+                setDraftColor(color.hex);
+              }}
+            />
+            <div className="s-picker-actions">
+              <span className="s-picker-hint">{"// applies on close"}</span>
+              <button
+                type="button"
+                className="s-picker-done-btn"
+                onClick={closeAndCommitPicker}
+              >
+                <Check size={12} />
+                <span>Apply</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       <SectionHeader title="typography" />
@@ -235,6 +364,7 @@ function SearchTab({ settings, updateSetting }) {
                 <Circle size={15} />
               )}
             </span>
+            <SearchEngineLogo engine={e.label} size={16} />
             <span className="s-engine-name">{e.label}</span>
             <span className="s-hint">
               {e.prefix.replace("https://", "").split("/")[0]}
@@ -250,28 +380,81 @@ function SearchTab({ settings, updateSetting }) {
 const AVAILABLE_ICON_KEYS = AVAILABLE_BOOKMARK_ICONS;
 
 function BookmarksTab({ settings, updateSetting }) {
-  const [form, setForm] = useState({ icon: "Link", label: "", url: "" });
+  const [form, setForm] = useState({ icon: "favicon", label: "", url: "" });
+  const [editingId, setEditingId] = useState(null);
   const [error, setError] = useState("");
+  const formRef = useRef(null);
 
-  function addBookmark() {
+  function startEdit(bm) {
+    setEditingId(bm.id);
+    setForm({
+      icon: bm.icon || "favicon",
+      label: bm.label || "",
+      url: bm.url || "",
+    });
+    setError("");
+    formRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function cancelEdit() {
+    setEditingId(null);
+    setForm({ icon: "favicon", label: "", url: "" });
+    setError("");
+  }
+
+  function handleSubmit(e) {
+    if (e) e.preventDefault();
     if (!form.label.trim() || !form.url.trim()) {
       setError("Label and URL are required.");
       return;
     }
+
+    let formattedUrl = form.url.trim();
+    if (
+      !formattedUrl.startsWith("http://") &&
+      !formattedUrl.startsWith("https://")
+    ) {
+      formattedUrl = `https://${formattedUrl}`;
+    }
+
     try {
-      new URL(form.url);
+      new URL(formattedUrl);
     } catch {
       setError("Enter a valid URL (include https://).");
       return;
     }
 
-    const newBookmark = { id: Date.now().toString(), ...form };
-    updateSetting("bookmarks", [...settings.bookmarks, newBookmark]);
-    setForm({ icon: "Link", label: "", url: "" });
+    if (editingId) {
+      const updated = settings.bookmarks.map((bm) =>
+        bm.id === editingId
+          ? {
+              ...bm,
+              icon: form.icon,
+              label: form.label.trim(),
+              url: formattedUrl,
+            }
+          : bm,
+      );
+      updateSetting("bookmarks", updated);
+      setEditingId(null);
+    } else {
+      const newBookmark = {
+        id: Date.now().toString(),
+        icon: form.icon,
+        label: form.label.trim(),
+        url: formattedUrl,
+      };
+      updateSetting("bookmarks", [...settings.bookmarks, newBookmark]);
+    }
+
+    setForm({ icon: "favicon", label: "", url: "" });
     setError("");
   }
 
   function removeBookmark(id) {
+    if (editingId === id) {
+      cancelEdit();
+    }
     updateSetting(
       "bookmarks",
       settings.bookmarks.filter((b) => b.id !== id),
@@ -280,18 +463,32 @@ function BookmarksTab({ settings, updateSetting }) {
 
   return (
     <div className="s-tab-content">
-      <SectionHeader title="add bookmark" />
+      <div className="s-bm-form-header" ref={formRef}>
+        <SectionHeader title={editingId ? "edit bookmark" : "add bookmark"} />
+        {editingId && (
+          <button
+            className="s-bm-cancel-link"
+            type="button"
+            onClick={cancelEdit}
+            title="Cancel editing"
+          >
+            cancel edit
+          </button>
+        )}
+      </div>
 
       <div className="s-bm-icon-picker">
         {AVAILABLE_ICON_KEYS.map((key) => (
           <button
             key={key}
             type="button"
-            className={`s-icon-btn ${form.icon === key ? "active" : ""}`}
+            className={`s-icon-btn ${form.icon === key ? "active" : ""} ${
+              key === "favicon" ? "s-icon-btn-favicon" : ""
+            }`}
             onClick={() => setForm((f) => ({ ...f, icon: key }))}
-            title={key}
+            title={key === "favicon" ? "Website Favicon (Auto)" : key}
           >
-            <BookmarkIcon name={key} size={15} />
+            <BookmarkIcon name={key} url={form.url} size={15} />
           </button>
         ))}
       </div>
@@ -302,6 +499,9 @@ function BookmarksTab({ settings, updateSetting }) {
           placeholder="Label (e.g. HackTricks)"
           value={form.label}
           onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit(e);
+          }}
           maxLength={24}
         />
         <input
@@ -309,33 +509,76 @@ function BookmarksTab({ settings, updateSetting }) {
           placeholder="URL (https://...)"
           value={form.url}
           onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSubmit(e);
+          }}
         />
+        {form.icon === "favicon" && form.url && (
+          <div className="s-bm-favicon-preview">
+            <span className="s-hint">Favicon preview:</span>
+            <BookmarkIcon name="favicon" url={form.url} size={16} />
+          </div>
+        )}
         {error && <p className="s-error">{error}</p>}
-        <button className="s-btn-primary" type="button" onClick={addBookmark}>
-          <Plus size={14} />
-          <span>Add bookmark</span>
-        </button>
+        <div className="s-bm-form-actions">
+          <button
+            className="s-btn-primary"
+            type="button"
+            onClick={handleSubmit}
+          >
+            {editingId ? <Check size={14} /> : <Plus size={14} />}
+            <span>{editingId ? "Save changes" : "Add bookmark"}</span>
+          </button>
+          {editingId && (
+            <button
+              className="s-btn-secondary"
+              type="button"
+              onClick={cancelEdit}
+            >
+              <X size={14} />
+              <span>Cancel</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <SectionHeader title="current bookmarks" />
       <ul className="s-bm-list">
-        {settings.bookmarks.map((bm) => (
-          <li key={bm.id} className="s-bm-item">
-            <span className="s-bm-icon">
-              <BookmarkIcon name={bm.icon} size={14} />
-            </span>
-            <span className="s-bm-label">{bm.label}</span>
-            <span className="s-bm-url">{bm.url}</span>
-            <button
-              className="s-bm-remove"
-              type="button"
-              onClick={() => removeBookmark(bm.id)}
-              title="Remove"
+        {settings.bookmarks.map((bm) => {
+          const isEditing = bm.id === editingId;
+          return (
+            <li
+              key={bm.id}
+              className={`s-bm-item ${isEditing ? "editing" : ""}`}
             >
-              <Trash2 size={13} />
-            </button>
-          </li>
-        ))}
+              <span className="s-bm-icon">
+                <BookmarkIcon name={bm.icon} url={bm.url} size={14} />
+              </span>
+              <span className="s-bm-label">{bm.label}</span>
+              <span className="s-bm-url" title={bm.url}>
+                {bm.url}
+              </span>
+              <div className="s-bm-item-actions">
+                <button
+                  className={`s-bm-action-btn ${isEditing ? "active" : ""}`}
+                  type="button"
+                  onClick={() => (isEditing ? cancelEdit() : startEdit(bm))}
+                  title={isEditing ? "Cancel edit" : "Edit bookmark"}
+                >
+                  <Pencil size={13} />
+                </button>
+                <button
+                  className="s-bm-action-btn s-bm-remove"
+                  type="button"
+                  onClick={() => removeBookmark(bm.id)}
+                  title="Remove bookmark"
+                >
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            </li>
+          );
+        })}
         {settings.bookmarks.length === 0 && (
           <li className="s-empty">No bookmarks yet.</li>
         )}
@@ -434,7 +677,9 @@ export default function Settings({ open, onClose }) {
 
         {/* Footer */}
         <div className="s-footer">
-          <span className="s-footer-note">{"// changes save automatically"}</span>
+          <span className="s-footer-note">
+            {"// changes save automatically"}
+          </span>
         </div>
       </aside>
     </>
