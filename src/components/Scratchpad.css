@@ -259,4 +259,8 @@
   .sp-footer {
     padding: 8px 14px;
   }
+
+  body.minimal-mobile-mode .sp-hint {
+    display: none;
+  }
 }

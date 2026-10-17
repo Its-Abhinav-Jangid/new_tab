@@ -16,6 +16,7 @@ import {
   formatBookmarkUrl,
   isValidUrl,
 } from "../utils/bookmarkUtils";
+import useDelayedUnmount from "../hooks/useDelayedUnmount";
 import "./SearchBar.css";
 
 const ENGINES = [
@@ -61,11 +62,36 @@ export default function SearchBar() {
   const inputRef = useRef(null);
   const listRef = useRef(null);
 
+  const showSearchEngines = settings?.showSearchEngines ?? true;
+  const enabledEngineLabels = useMemo(
+    () => settings?.enabledEngines || ["Google", "DuckDuckGo", "Shodan", "GitHub"],
+    [settings?.enabledEngines]
+  );
+
+  const visibleEngines = useMemo(() => {
+    const list = ENGINES.filter((e) => enabledEngineLabels.includes(e.label));
+    return list.length > 0 ? list : ENGINES;
+  }, [enabledEngineLabels]);
+
+  const enginePickerAnim = useDelayedUnmount(
+    showSearchEngines && visibleEngines.length > 1,
+    220,
+  );
+
   useEffect(() => {
     if (settings?.defaultEngine !== undefined) {
       setEngine(settings.defaultEngine);
     }
   }, [settings?.defaultEngine]);
+
+  // If current engine was disabled, switch to first visible engine
+  useEffect(() => {
+    const current = ENGINES[engine];
+    if (current && !enabledEngineLabels.includes(current.label)) {
+      const fallbackIdx = ENGINES.findIndex((e) => e.label === visibleEngines[0].label);
+      setEngine(fallbackIdx !== -1 ? fallbackIdx : 0);
+    }
+  }, [engine, enabledEngineLabels, visibleEngines]);
 
   const currentEngineLabel = ENGINES[engine]?.label || "Google";
   const placeholder = useMemo(() => {
@@ -233,20 +259,30 @@ export default function SearchBar() {
   }
 
   function handleKeyDown(e) {
-    // Switch search engines using Alt+1..4
+    // Switch search engines using Alt+1..4 (among visible engines)
     if (e.altKey && ["1", "2", "3", "4"].includes(e.key)) {
       e.preventDefault();
       const targetIndex = parseInt(e.key, 10) - 1;
-      if (targetIndex >= 0 && targetIndex < ENGINES.length) {
-        setEngine(targetIndex);
+      if (targetIndex >= 0 && targetIndex < visibleEngines.length) {
+        const globalIdx = ENGINES.findIndex(
+          (eng) => eng.label === visibleEngines[targetIndex].label,
+        );
+        if (globalIdx !== -1) setEngine(globalIdx);
       }
       return;
     }
 
-    // If query is empty and user hits Tab, cycle to next search engine
+    // If query is empty and user hits Tab, cycle to next search engine among visible engines
     if (e.key === "Tab" && !query.trim() && (!showDropdown || items.length === 0)) {
       e.preventDefault();
-      setEngine((prev) => (prev + 1) % ENGINES.length);
+      const currentVisIndex = visibleEngines.findIndex(
+        (eng) => ENGINES.findIndex((x) => x.label === eng.label) === engine,
+      );
+      const nextVisIndex = (currentVisIndex + 1) % visibleEngines.length;
+      const nextGlobalIndex = ENGINES.findIndex(
+        (eng) => eng.label === visibleEngines[nextVisIndex].label,
+      );
+      setEngine(nextGlobalIndex !== -1 ? nextGlobalIndex : 0);
       return;
     }
 
@@ -327,22 +363,28 @@ export default function SearchBar() {
 
   return (
     <div className="search-wrapper" ref={wrapperRef}>
-      {/* Engine picker */}
-      <div className="search-engines">
-        {ENGINES.map((e, i) => (
-          <button
-            key={e.label}
-            type="button"
-            className={`engine-btn ${i === engine ? "active" : ""}`}
-            onClick={() => setEngine(i)}
-            data-tooltip={`${e.label} (Alt+${i + 1})`}
-            title={`${e.label} (Alt+${i + 1})`}
-            aria-label={e.label}
-          >
-            <SearchEngineLogo engine={e.label} size={17} />
-          </button>
-        ))}
-      </div>
+      {/* Engine picker: show only if enabled and more than 1 engine */}
+      {enginePickerAnim.shouldRender && (
+        <div className={`search-engines ${enginePickerAnim.animClass}`}>
+          {visibleEngines.map((e, visIdx) => {
+            const globalIndex = ENGINES.findIndex((eng) => eng.label === e.label);
+            const isActive = globalIndex === engine;
+            return (
+              <button
+                key={e.label}
+                type="button"
+                className={`engine-btn ${isActive ? "active" : ""}`}
+                onClick={() => setEngine(globalIndex)}
+                data-tooltip={`${e.label} (Alt+${visIdx + 1})`}
+                title={`${e.label} (Alt+${visIdx + 1})`}
+                aria-label={e.label}
+              >
+                <SearchEngineLogo engine={e.label} size={17} />
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Input container */}
       <form

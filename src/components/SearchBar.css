@@ -306,6 +306,10 @@
   .search-dropdown-footer {
     display: none !important;
   }
+
+  body.minimal-mobile-mode .search-engines {
+    display: none !important;
+  }
 }
 
 @media (hover: none), (pointer: coarse) {

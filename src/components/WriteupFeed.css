@@ -458,5 +458,17 @@
   .feed-header {
     flex-wrap: wrap;
     gap: 8px;
+    padding: 10px 14px;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  body.minimal-mobile-mode .feed-header {
+    flex-wrap: nowrap;
+  }
+
+  body.minimal-mobile-mode .feed-title-sub,
+  body.minimal-mobile-mode .feed-source {
+    display: none !important;
   }
 }

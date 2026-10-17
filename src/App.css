@@ -65,4 +65,8 @@
     padding: 7px 10px;
     font-size: 11.5px;
   }
+
+  .shortcuts-header-btn {
+    display: none;
+  }
 }

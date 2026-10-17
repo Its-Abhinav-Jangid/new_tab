@@ -13,6 +13,7 @@ import WelcomeModal from "./components/WelcomeModal";
 import H1ReportsTracker from "./components/H1ReportsTracker";
 import { fetchH1Reports } from "./services/hackeroneApi";
 import { Settings as SettingsIcon, FileText, Command, Rss, ShieldAlert } from "lucide-react";
+import useDelayedUnmount from "./hooks/useDelayedUnmount";
 
 const FOOTER_PUNCHLINES = [
   "// hacker tab — stay sharp · your FBI agent gives this setup 10/10",
@@ -42,6 +43,7 @@ function AppShell() {
   );
 
   const showScratchpad = settings?.showScratchpad ?? true;
+  const scratchpadAnim = useDelayedUnmount(showScratchpad, 200);
 
   // Auto-sync HackerOne reports once on app startup if configured
   useEffect(() => {
@@ -73,6 +75,16 @@ function AppShell() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Sync Minimal Mobile Mode class on body
+  useEffect(() => {
+    const isMinimalMobile = settings.minimalMobileMode ?? true;
+    if (isMinimalMobile) {
+      document.body.classList.add("minimal-mobile-mode");
+    } else {
+      document.body.classList.remove("minimal-mobile-mode");
+    }
+  }, [settings.minimalMobileMode]);
 
   // Global key listener for Settings (Alt+, / ,), Scratchpad (Alt+N / N), Shortcuts (Alt+? / ?), and View Toggle (Alt+R / R)
   useEffect(() => {
@@ -179,16 +191,20 @@ function AppShell() {
   }, []);
 
   return (
-    <div className="app">
+    <div
+      className={`app ${
+        (settings.minimalMobileMode ?? true) ? "minimal-mobile" : ""
+      }`}
+    >
       {/* Top bar: clock + actions */}
       <header className="app-header">
         <Clock />
         <div className="header-actions">
-          {showScratchpad && (
+          {scratchpadAnim.shouldRender && (
             <button
               className={`header-btn scratchpad-header-btn ${
                 scratchpadOpen ? "active" : ""
-              }`}
+              } ${scratchpadAnim.animClass}`}
               onClick={() => setScratchpadOpen((prev) => !prev)}
               data-tooltip="Scratchpad (Alt+N)"
               title="Scratchpad buffer (Press Alt+N or N)"

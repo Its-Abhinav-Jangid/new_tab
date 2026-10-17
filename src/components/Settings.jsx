@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useSettings } from "../context/SettingsContext";
 import useLockBodyScroll from "../hooks/useLockBodyScroll";
+import useDelayedUnmount from "../hooks/useDelayedUnmount";
 import SearchEngineLogo from "./SearchEngineLogo";
 import { Sketch } from "@uiw/react-color";
 import {
@@ -137,6 +138,8 @@ function AppearanceTab({ settings, updateSetting }) {
     updateSetting("accent", presetColor);
   };
 
+  const pickerAnim = useDelayedUnmount(showCustomPicker, 200);
+
   return (
     <div className="s-tab-content">
       <SectionHeader title="accent color" />
@@ -211,6 +214,8 @@ function AppearanceTab({ settings, updateSetting }) {
 
         {showCustomPicker && (
           <div className="s-sketch-container">
+        {pickerAnim.shouldRender && (
+          <div className={`s-sketch-container ${pickerAnim.animClass}`}>
             <Sketch
               color={draftColor}
               disableAlpha={true}
@@ -272,12 +277,29 @@ function AppearanceTab({ settings, updateSetting }) {
           maxLength={24}
         />
       </Row>
+      <Row label="Network status check" hint="HUD ping badge & latency indicator">
+        <Toggle
+          value={settings.enableNetworkCheck ?? true}
+          onChange={(v) => updateSetting("enableNetworkCheck", v)}
+        />
+      </Row>
 
       <SectionHeader title="scratchpad" />
       <Row label="Show scratchpad" hint="in-tab notes buffer">
         <Toggle
           value={settings.showScratchpad ?? true}
           onChange={(v) => updateSetting("showScratchpad", v)}
+        />
+      </Row>
+
+      <SectionHeader title="mobile layout" />
+      <Row
+        label="Minimal mobile mode"
+        hint="Master switch: streamline UI, strip verbose quotes & tips on mobile"
+      >
+        <Toggle
+          value={settings.minimalMobileMode ?? true}
+          onChange={(v) => updateSetting("minimalMobileMode", v)}
         />
       </Row>
     </div>
@@ -357,31 +379,89 @@ const ENGINES = [
 ];
 
 function SearchTab({ settings, updateSetting }) {
+  const showSearchEngines = settings.showSearchEngines ?? true;
+  const enabledEngines = settings.enabledEngines || ["Google", "DuckDuckGo", "Shodan", "GitHub"];
+
+  const toggleEngine = (label) => {
+    let next;
+    if (enabledEngines.includes(label)) {
+      if (enabledEngines.length <= 1) return; // Keep at least one
+      next = enabledEngines.filter((e) => e !== label);
+      // If disabling current default engine, switch default to first remaining
+      const defaultLabel = ENGINES[settings.defaultEngine]?.label;
+      if (defaultLabel === label) {
+        const remainingIdx = ENGINES.findIndex((e) => next.includes(e.label));
+        if (remainingIdx !== -1) {
+          updateSetting("defaultEngine", remainingIdx);
+        }
+      }
+    } else {
+      next = [...enabledEngines, label];
+    }
+    updateSetting("enabledEngines", next);
+  };
+
+  const handleSetDefault = (index, label) => {
+    // If setting as default, make sure it is also enabled
+    if (!enabledEngines.includes(label)) {
+      updateSetting("enabledEngines", [...enabledEngines, label]);
+    }
+    updateSetting("defaultEngine", index);
+  };
+
   return (
     <div className="s-tab-content">
-      <SectionHeader title="default engine" />
+      <SectionHeader title="engine switcher" />
+      <Row label="Show engine selector" hint="Display engine buttons above search input">
+        <Toggle
+          value={showSearchEngines}
+          onChange={(v) => updateSetting("showSearchEngines", v)}
+        />
+      </Row>
+
+      <SectionHeader title="available engines" />
       <div className="s-engine-list">
-        {ENGINES.map((e, i) => (
-          <button
-            key={e.label}
-            type="button"
-            className={`s-engine-option ${settings.defaultEngine === i ? "active" : ""}`}
-            onClick={() => updateSetting("defaultEngine", i)}
-          >
-            <span className="s-engine-check">
-              {settings.defaultEngine === i ? (
-                <CheckCircle2 size={15} />
-              ) : (
-                <Circle size={15} />
-              )}
-            </span>
-            <SearchEngineLogo engine={e.label} size={16} />
-            <span className="s-engine-name">{e.label}</span>
-            <span className="s-hint">
-              {e.prefix.replace("https://", "").split("/")[0]}
-            </span>
-          </button>
-        ))}
+        {ENGINES.map((e, i) => {
+          const isEnabled = enabledEngines.includes(e.label);
+          const isDefault = settings.defaultEngine === i;
+          return (
+            <div
+              key={e.label}
+              className={`s-engine-row ${isDefault ? "is-default" : ""} ${!isEnabled ? "is-disabled" : ""}`}
+            >
+              <div
+                className="s-engine-info"
+                onClick={() => handleSetDefault(i, e.label)}
+                title={isDefault ? "Current default engine" : "Click to set as default engine"}
+              >
+                <span className="s-engine-radio">
+                  {isDefault ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                </span>
+                <SearchEngineLogo engine={e.label} size={16} />
+                <div className="s-engine-meta">
+                  <span className="s-engine-name">{e.label}</span>
+                  {isDefault && <span className="s-engine-default-pill">Default</span>}
+                </div>
+              </div>
+
+              <div className="s-engine-controls">
+                <button
+                  type="button"
+                  className={`s-engine-toggle-btn ${isEnabled ? "active" : ""}`}
+                  onClick={() => toggleEngine(e.label)}
+                  title={
+                    isEnabled
+                      ? "Remove from search engine selections"
+                      : "Add to search engine selections"
+                  }
+                  disabled={isEnabled && enabledEngines.length <= 1}
+                >
+                  {isEnabled ? "Included" : "Hidden"}
+                </button>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -459,6 +539,21 @@ function HackerOneTab({ settings, updateSetting }) {
     updateSetting("h1SyncError", null);
     setTestResult(null);
   };
+
+  const testResultAnim = useDelayedUnmount(Boolean(testResult), 220);
+  const disconnectAnim = useDelayedUnmount(
+    Boolean(settings.h1Identifier || settings.h1Token),
+    200,
+  );
+  const corsKeyAnim = useDelayedUnmount(
+    selectedProviderId === "corsproxy.io" || selectedProviderId === "cors.sh",
+    200,
+  );
+  const customProxyAnim = useDelayedUnmount(
+    selectedProviderId === "custom",
+    200,
+  );
+  const directAnim = useDelayedUnmount(selectedProviderId === "direct", 200);
 
   return (
     <div className="s-tab-content">
@@ -541,6 +636,8 @@ function HackerOneTab({ settings, updateSetting }) {
       {(selectedProviderId === "corsproxy.io" ||
         selectedProviderId === "cors.sh") && (
         <div className="s-field-group">
+      {corsKeyAnim.shouldRender && (
+        <div className={`s-field-group ${corsKeyAnim.animClass}`}>
           <div className="s-label-row">
             <label className="s-label">
               {selectedProviderId === "corsproxy.io"
@@ -568,6 +665,8 @@ function HackerOneTab({ settings, updateSetting }) {
 
       {selectedProviderId === "custom" && (
         <>
+      {customProxyAnim.shouldRender && (
+        <div className={customProxyAnim.animClass}>
           <div className="s-field-group">
             <label className="s-label">Custom Proxy URL</label>
             <input
@@ -606,10 +705,13 @@ function HackerOneTab({ settings, updateSetting }) {
             />
           </div>
         </>
+        </div>
       )}
 
       {selectedProviderId === "direct" && (
         <div className="s-field-group">
+      {directAnim.shouldRender && (
+        <div className={`s-field-group ${directAnim.animClass}`}>
           <span className="s-hint-sub s-hint-warn">
             {
               "// Direct requests require running in a browser extension with host permissions. Standard browser tabs will encounter CORS errors."
@@ -638,9 +740,11 @@ function HackerOneTab({ settings, updateSetting }) {
         </button>
 
         {(settings.h1Identifier || settings.h1Token) && (
+        {disconnectAnim.shouldRender && (
           <button
             type="button"
             className="s-h1-clear-btn"
+            className={`s-h1-clear-btn ${disconnectAnim.animClass}`}
             onClick={handleClear}
           >
             Disconnect
@@ -649,10 +753,13 @@ function HackerOneTab({ settings, updateSetting }) {
       </div>
 
       {testResult && (
+      {testResultAnim.shouldRender && (
         <div
           className={`s-test-result ${testResult.success ? "success" : "error"}`}
+          className={`s-test-result ${testResult?.success ? "success" : "error"} ${testResultAnim.animClass}`}
         >
           {testResult.message}
+          {testResult?.message}
         </div>
       )}
     </div>

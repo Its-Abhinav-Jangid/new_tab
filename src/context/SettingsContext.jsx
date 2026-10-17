@@ -16,6 +16,8 @@ export const DEFAULT_SETTINGS = {
   cardSize: "medium", // 'compact' | 'medium' | 'large'
   showGreeting: true,
   greetingName: "hacker",
+  enableNetworkCheck: true,
+  minimalMobileMode: true,
   showScratchpad: true,
 
   // HackerOne Submissions Tracker
@@ -33,10 +35,12 @@ export const DEFAULT_SETTINGS = {
 
   // Clock
   timeFormat: "24h", // '24h' | '12h'
-  showSeconds: true,
+  showSeconds: false,
   showDate: true,
 
   // Search
+  showSearchEngines: true,
+  enabledEngines: ["Google", "DuckDuckGo", "Shodan", "GitHub"],
   defaultEngine: 0, // index into ENGINES array
 
   // Feed: Maintained bug bounty writeup sources
@@ -147,9 +151,53 @@ function getStoredSettings() {
       }));
     }
 
+    // Ensure array defaults
+    const bookmarks = Array.isArray(parsed.bookmarks)
+      ? parsed.bookmarks
+      : DEFAULT_SETTINGS.bookmarks;
+
+    const enabledEngines =
+      Array.isArray(parsed.enabledEngines) && parsed.enabledEngines.length > 0
+        ? parsed.enabledEngines
+        : DEFAULT_SETTINGS.enabledEngines;
+
+    const h1Reports = Array.isArray(parsed.h1Reports)
+      ? parsed.h1Reports
+      : DEFAULT_SETTINGS.h1Reports;
+
     return {
       ...DEFAULT_SETTINGS,
       ...parsed,
+      // Guarantee valid defaults for all newly added and existing options
+      enableNetworkCheck:
+        parsed.enableNetworkCheck ?? DEFAULT_SETTINGS.enableNetworkCheck,
+      minimalMobileMode:
+        parsed.minimalMobileMode ?? DEFAULT_SETTINGS.minimalMobileMode,
+      showSearchEngines:
+        parsed.showSearchEngines ?? DEFAULT_SETTINGS.showSearchEngines,
+      h1AutoSync: parsed.h1AutoSync ?? DEFAULT_SETTINGS.h1AutoSync,
+      h1CorsProvider: parsed.h1CorsProvider || DEFAULT_SETTINGS.h1CorsProvider,
+      h1Identifier: parsed.h1Identifier ?? DEFAULT_SETTINGS.h1Identifier,
+      h1Token: parsed.h1Token ?? DEFAULT_SETTINGS.h1Token,
+      h1CorsApiKey: parsed.h1CorsApiKey ?? DEFAULT_SETTINGS.h1CorsApiKey,
+      h1CustomProxyUrl:
+        parsed.h1CustomProxyUrl ??
+        parsed.h1ProxyUrl ??
+        DEFAULT_SETTINGS.h1CustomProxyUrl,
+      h1CustomHeaderName:
+        parsed.h1CustomHeaderName ?? DEFAULT_SETTINGS.h1CustomHeaderName,
+      h1CustomHeaderValue:
+        parsed.h1CustomHeaderValue ?? DEFAULT_SETTINGS.h1CustomHeaderValue,
+      showScratchpad: parsed.showScratchpad ?? DEFAULT_SETTINGS.showScratchpad,
+      showGreeting: parsed.showGreeting ?? DEFAULT_SETTINGS.showGreeting,
+      greetingName: parsed.greetingName || DEFAULT_SETTINGS.greetingName,
+      defaultEngine:
+        typeof parsed.defaultEngine === "number"
+          ? parsed.defaultEngine
+          : DEFAULT_SETTINGS.defaultEngine,
+      bookmarks,
+      enabledEngines,
+      h1Reports,
       feedSources,
     };
   } catch {

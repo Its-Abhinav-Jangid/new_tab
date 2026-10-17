@@ -81,21 +81,65 @@ const SAMPLE_REPORTS = [
 ];
 
 const SEVERITY_COLORS = {
-  critical: { bg: "rgba(247, 118, 142, 0.15)", text: "#f7768e", border: "rgba(247, 118, 142, 0.4)" },
-  high: { bg: "rgba(255, 158, 100, 0.15)", text: "#ff9e64", border: "rgba(255, 158, 100, 0.4)" },
-  medium: { bg: "rgba(224, 175, 104, 0.15)", text: "#e0af68", border: "rgba(224, 175, 104, 0.4)" },
-  low: { bg: "rgba(122, 162, 247, 0.15)", text: "#7aa2f7", border: "rgba(122, 162, 247, 0.4)" },
-  none: { bg: "rgba(86, 95, 137, 0.2)", text: "#a9b1d6", border: "rgba(86, 95, 137, 0.4)" },
+  critical: {
+    bg: "rgba(247, 118, 142, 0.15)",
+    text: "#f7768e",
+    border: "rgba(247, 118, 142, 0.4)",
+  },
+  high: {
+    bg: "rgba(255, 158, 100, 0.15)",
+    text: "#ff9e64",
+    border: "rgba(255, 158, 100, 0.4)",
+  },
+  medium: {
+    bg: "rgba(224, 175, 104, 0.15)",
+    text: "#e0af68",
+    border: "rgba(224, 175, 104, 0.4)",
+  },
+  low: {
+    bg: "rgba(122, 162, 247, 0.15)",
+    text: "#7aa2f7",
+    border: "rgba(122, 162, 247, 0.4)",
+  },
+  none: {
+    bg: "rgba(86, 95, 137, 0.2)",
+    text: "#a9b1d6",
+    border: "rgba(86, 95, 137, 0.4)",
+  },
 };
 
 const STATE_CONFIG = {
-  resolved: { label: "Resolved", color: "#39d353", bg: "rgba(57, 211, 83, 0.12)" },
-  triaged: { label: "Triaged", color: "#7dcfff", bg: "rgba(125, 207, 255, 0.12)" },
+  resolved: {
+    label: "Resolved",
+    color: "#39d353",
+    bg: "rgba(57, 211, 83, 0.12)",
+  },
+  triaged: {
+    label: "Triaged",
+    color: "#7dcfff",
+    bg: "rgba(125, 207, 255, 0.12)",
+  },
   new: { label: "New", color: "#bb9af7", bg: "rgba(187, 154, 247, 0.12)" },
-  "needs-more-info": { label: "Needs Info", color: "#e0af68", bg: "rgba(224, 175, 104, 0.12)" },
-  duplicate: { label: "Duplicate", color: "#565f89", bg: "rgba(86, 95, 137, 0.2)" },
-  informative: { label: "Informative", color: "#7aa2f7", bg: "rgba(122, 162, 247, 0.12)" },
-  "not-applicable": { label: "N/A", color: "#565f89", bg: "rgba(86, 95, 137, 0.2)" },
+  "needs-more-info": {
+    label: "Needs Info",
+    color: "#e0af68",
+    bg: "rgba(224, 175, 104, 0.12)",
+  },
+  duplicate: {
+    label: "Duplicate",
+    color: "#565f89",
+    bg: "rgba(86, 95, 137, 0.2)",
+  },
+  informative: {
+    label: "Informative",
+    color: "#7aa2f7",
+    bg: "rgba(122, 162, 247, 0.12)",
+  },
+  "not-applicable": {
+    label: "N/A",
+    color: "#565f89",
+    bg: "rgba(86, 95, 137, 0.2)",
+  },
   spam: { label: "Spam", color: "#f7768e", bg: "rgba(247, 118, 142, 0.12)" },
 };
 
@@ -124,10 +168,7 @@ export default function H1ReportsTracker({ onOpenSettings }) {
 
   const fileInputRef = useRef(null);
 
-  const reports = useMemo(
-    () => settings.h1Reports || [],
-    [settings.h1Reports]
-  );
+  const reports = useMemo(() => settings.h1Reports || [], [settings.h1Reports]);
   const stats = useMemo(() => calculateH1Stats(reports), [reports]);
 
   // Sync API reports
@@ -135,7 +176,8 @@ export default function H1ReportsTracker({ onOpenSettings }) {
     if (!settings.h1Identifier || !settings.h1Token) {
       setSyncFeedback({
         type: "warn",
-        message: "API identifier or token missing. Please configure credentials in Settings.",
+        message:
+          "API identifier or token missing. Please configure credentials in Settings.",
       });
       return;
     }
@@ -239,10 +281,15 @@ export default function H1ReportsTracker({ onOpenSettings }) {
 
   // Export reports to JSON
   const handleExportJson = () => {
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(reports, null, 2));
+    const dataStr =
+      "data:text/json;charset=utf-8," +
+      encodeURIComponent(JSON.stringify(reports, null, 2));
     const downloadAnchor = document.createElement("a");
     downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `hackerone_reports_${new Date().toISOString().slice(0, 10)}.json`);
+    downloadAnchor.setAttribute(
+      "download",
+      `hackerone_reports_${new Date().toISOString().slice(0, 10)}.json`,
+    );
     document.body.appendChild(downloadAnchor);
     downloadAnchor.click();
     downloadAnchor.remove();
@@ -262,7 +309,8 @@ export default function H1ReportsTracker({ onOpenSettings }) {
     return reports
       .filter((r) => {
         if (stateFilter !== "all" && r.state !== stateFilter) return false;
-        if (severityFilter !== "all" && r.severity !== severityFilter) return false;
+        if (severityFilter !== "all" && r.severity !== severityFilter)
+          return false;
         if (searchQuery.trim()) {
           const q = searchQuery.toLowerCase().trim();
           const matchTitle = (r.title || "").toLowerCase().includes(q);
@@ -281,7 +329,10 @@ export default function H1ReportsTracker({ onOpenSettings }) {
           return (weights[b.severity] || 0) - (weights[a.severity] || 0);
         }
         // default: newest date
-        return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+        return (
+          new Date(b.createdAt || 0).getTime() -
+          new Date(a.createdAt || 0).getTime()
+        );
       });
   }, [reports, stateFilter, severityFilter, searchQuery, sortBy]);
 
@@ -292,7 +343,11 @@ export default function H1ReportsTracker({ onOpenSettings }) {
         <div className="h1-top-title-wrap">
           <ShieldAlert size={15} className="h1-accent-icon" />
           <h2 className="h1-top-title">
-            {"// hackerone reports · track targets, triage & bounty earnings"}
+            <span className="h1-title-main">// hackerone reports</span>
+            <span className="h1-title-sub">
+              {" "}
+              · track targets, triage & bounty earnings
+            </span>
           </h2>
         </div>
 
@@ -501,12 +556,11 @@ export default function H1ReportsTracker({ onOpenSettings }) {
           {filteredReports.map((report) => {
             const sevConfig =
               SEVERITY_COLORS[report.severity] || SEVERITY_COLORS.none;
-            const stateCfg =
-              STATE_CONFIG[report.state] || {
-                label: report.state,
-                color: "#a9b1d6",
-                bg: "rgba(169, 177, 214, 0.12)",
-              };
+            const stateCfg = STATE_CONFIG[report.state] || {
+              label: report.state,
+              color: "#a9b1d6",
+              bg: "rgba(169, 177, 214, 0.12)",
+            };
 
             return (
               <div key={report.id} className="h1-report-card">
@@ -517,7 +571,10 @@ export default function H1ReportsTracker({ onOpenSettings }) {
                       @{report.program || "unknown"}
                     </span>
                     <a
-                      href={report.url || `https://hackerone.com/reports/${report.id}`}
+                      href={
+                        report.url ||
+                        `https://hackerone.com/reports/${report.id}`
+                      }
                       target="_blank"
                       rel="noopener noreferrer"
                       className="h1-report-id-link"
@@ -553,7 +610,9 @@ export default function H1ReportsTracker({ onOpenSettings }) {
 
                 {/* Card Title */}
                 <a
-                  href={report.url || `https://hackerone.com/reports/${report.id}`}
+                  href={
+                    report.url || `https://hackerone.com/reports/${report.id}`
+                  }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="h1-card-title"
@@ -564,10 +623,14 @@ export default function H1ReportsTracker({ onOpenSettings }) {
                 {/* Card Footer: Bounty & Time & Actions */}
                 <div className="h1-card-footer">
                   <div className="h1-card-bounty-wrap">
-                    {report.bounty !== null && report.bounty !== undefined && report.bounty > 0 ? (
+                    {report.bounty !== null &&
+                    report.bounty !== undefined &&
+                    report.bounty > 0 ? (
                       <span className="h1-bounty-reward">
                         <DollarSign size={12} />
-                        <span>{formatBounty(report.bounty, report.currency)}</span>
+                        <span>
+                          {formatBounty(report.bounty, report.currency)}
+                        </span>
                       </span>
                     ) : (
                       <span className="h1-bounty-pending">
@@ -676,4 +739,3 @@ export default function H1ReportsTracker({ onOpenSettings }) {
     </div>
   );
 }
-

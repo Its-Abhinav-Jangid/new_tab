@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useSettings } from "../context/SettingsContext";
+import useDelayedUnmount from "../hooks/useDelayedUnmount";
 import "./Greeting.css";
 
 const WITTY_ONLINE_QUOTES = [
@@ -33,6 +34,7 @@ function getTimeGreeting() {
 
 export default function Greeting() {
   const [settings] = useSettings();
+  const enableNetworkCheck = settings?.enableNetworkCheck ?? true;
   const [salutation, setSalutation] = useState(getTimeGreeting);
   const [quoteIndex, setQuoteIndex] = useState(() =>
     Math.floor(Math.random() * WITTY_ONLINE_QUOTES.length),
@@ -44,6 +46,7 @@ export default function Greeting() {
   });
 
   const checkNetwork = useCallback(async () => {
+    if (!enableNetworkCheck) return;
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       setNetworkStatus({ online: false, latency: null, checking: false });
       return;
@@ -76,23 +79,35 @@ export default function Greeting() {
         setNetworkStatus({ online: false, latency: null, checking: false });
       }
     }
-  }, []);
+  }, [enableNetworkCheck]);
 
   useEffect(() => {
-    checkNetwork();
+    if (enableNetworkCheck) {
+      checkNetwork();
+    }
 
-    const handleOnline = () => checkNetwork();
+    const handleOnline = () => {
+      if (enableNetworkCheck) checkNetwork();
+      else setNetworkStatus({ online: true, latency: null, checking: false });
+    };
     const handleOffline = () => {
       setNetworkStatus({ online: false, latency: null, checking: false });
     };
-    const handleFocus = () => checkNetwork();
+    const handleFocus = () => {
+      if (enableNetworkCheck) checkNetwork();
+    };
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
-    window.addEventListener("focus", handleFocus);
+    if (enableNetworkCheck) {
+      window.addEventListener("focus", handleFocus);
+    }
 
-    // Periodic check every 30s
-    const netInterval = setInterval(checkNetwork, 30000);
+    // Periodic check every 30s only if enabled
+    let netInterval = null;
+    if (enableNetworkCheck) {
+      netInterval = setInterval(checkNetwork, 30000);
+    }
 
     // Update salutation every minute
     const salutationInterval = setInterval(() => {
@@ -102,18 +117,22 @@ export default function Greeting() {
     return () => {
       window.removeEventListener("online", handleOnline);
       window.removeEventListener("offline", handleOffline);
-      window.removeEventListener("focus", handleFocus);
-      clearInterval(netInterval);
+      if (enableNetworkCheck) {
+        window.removeEventListener("focus", handleFocus);
+      }
+      if (netInterval) clearInterval(netInterval);
       clearInterval(salutationInterval);
     };
-  }, [checkNetwork]);
+  }, [enableNetworkCheck, checkNetwork]);
 
   const showGreeting = settings?.showGreeting ?? true;
+  const greetingAnim = useDelayedUnmount(showGreeting, 220);
+  const hudPillAnim = useDelayedUnmount(enableNetworkCheck, 220);
   const greetingName = settings?.greetingName || "hacker";
 
-  if (!showGreeting) return null;
+  if (!greetingAnim.shouldRender) return null;
 
-  const isOnline = networkStatus.online;
+  const isOnline = !enableNetworkCheck || networkStatus.online;
   const isChecking = networkStatus.checking;
   const latency = networkStatus.latency;
 
@@ -124,20 +143,21 @@ export default function Greeting() {
   };
 
   return (
-    <div className="greeting-container">
-      {/* Real Network Status HUD Tag */}
-      <button
-        type="button"
-        className={`greeting-hud-pill ${isOnline ? "online" : "offline"} ${
-          isChecking ? "checking" : ""
-        }`}
-        onClick={checkNetwork}
-        title="Click to re-verify network connectivity"
-      >
-        <span
-          className={`greeting-live-dot ${
-            isOnline ? "online" : "offline"
-          } ${isChecking ? "checking" : ""}`}
+    <div className={`greeting-container ${greetingAnim.animClass}`}>
+      {/* Real Network Status HUD Tag (only if enabled) */}
+      {hudPillAnim.shouldRender && (
+        <button
+          type="button"
+          className={`greeting-hud-pill ${isOnline ? "online" : "offline"} ${
+            isChecking ? "checking" : ""
+          } ${hudPillAnim.animClass}`}
+          onClick={checkNetwork}
+          title="Click to re-verify network connectivity"
+        >
+          <span
+            className={`greeting-live-dot ${
+              isOnline ? "online" : "offline"
+            } ${isChecking ? "checking" : ""}`}
           aria-hidden="true"
         />
         <span className="greeting-hud-system">
@@ -164,6 +184,7 @@ export default function Greeting() {
           </>
         )}
       </button>
+      )}
 
       {/* Main Hero Title */}
       <h1 className="greeting-title">

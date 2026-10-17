@@ -215,7 +215,8 @@ export default function WriteupFeed() {
         <div className="feed-title-wrap">
           <Rss size={14} className="feed-header-icon" />
           <span className="feed-title">
-            {"// bug bounty writeups · how others got bounties while you slept"}
+            <span className="feed-title-main">{"// bug bounty writeups"}</span>
+            <span className="feed-title-sub">{" · how others got bounties while you slept"}</span>
           </span>
         </div>
         <span className="feed-source">

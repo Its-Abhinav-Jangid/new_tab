@@ -730,10 +730,16 @@
   .h1-top-banner {
     padding: 10px 12px;
     gap: 8px;
+    align-items: center;
+  }
+
+  body.minimal-mobile-mode .h1-title-sub {
+    display: none !important;
   }
 
   .h1-top-title {
-    font-size: 10.5px;
+    font-size: 11px;
+    white-space: nowrap;
   }
 
   .h1-top-actions {

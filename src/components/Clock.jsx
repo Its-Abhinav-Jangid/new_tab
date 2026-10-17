@@ -26,6 +26,8 @@ const MONTHS = [
   "Dec",
 ];
 
+import useDelayedUnmount from "../hooks/useDelayedUnmount";
+
 export default function Clock() {
   const [settings] = useSettings();
   const [now, setNow] = useState(new Date());
@@ -38,6 +40,10 @@ export default function Clock() {
   const timeFormat = settings?.timeFormat || "24h";
   const showSeconds = settings?.showSeconds ?? true;
   const showDate = settings?.showDate ?? true;
+
+  const secondsAnim = useDelayedUnmount(showSeconds, 180);
+  const ampmAnim = useDelayedUnmount(timeFormat === "12h", 180);
+  const dateAnim = useDelayedUnmount(showDate, 200);
 
   let rawHours = now.getHours();
   let ampm = "";
@@ -56,11 +62,27 @@ export default function Clock() {
         <span className="clock-hhmm">
           {hour}:{minute}
         </span>
-        {showSeconds && <span className="clock-ss">{second}</span>}
-        {timeFormat === "12h" && <span className="clock-ampm">{ampm}</span>}
+        {secondsAnim.shouldRender && (
+          <span
+            className={`clock-ss ${
+              secondsAnim.isExiting ? "anim-fade-disappear" : "anim-fade-appear"
+            }`}
+          >
+            {second}
+          </span>
+        )}
+        {ampmAnim.shouldRender && (
+          <span
+            className={`clock-ampm ${
+              ampmAnim.isExiting ? "anim-fade-disappear" : "anim-fade-appear"
+            }`}
+          >
+            {ampm}
+          </span>
+        )}
       </div>
-      {showDate && (
-        <div className="clock-date">
+      {dateAnim.shouldRender && (
+        <div className={`clock-date ${dateAnim.animClass}`}>
           {DAYS[now.getDay()]}, {MONTHS[now.getMonth()]} {now.getDate()}{" "}
           {now.getFullYear()}
         </div>

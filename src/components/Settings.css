@@ -498,45 +498,107 @@
   padding: 4px 20px;
 }
 
-.s-engine-option {
+.s-engine-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm, 6px);
   border: 1px solid var(--border);
   background: var(--bg-card);
-  color: var(--text-secondary);
-  font-size: 13px;
-  cursor: pointer;
-  transition: border-color 0.15s, color 0.15s, background 0.15s;
-  text-align: left;
+  transition: border-color 0.15s, background 0.15s, opacity 0.15s;
 }
 
-.s-engine-option:hover {
+.s-engine-row:hover {
   background: var(--bg-card-hover);
-  color: var(--text-primary);
   border-color: var(--border-bright);
 }
 
-.s-engine-option.active {
-  border-color: var(--accent, var(--cyan));
-  color: var(--accent, var(--cyan));
-  background: rgba(125, 207, 255, 0.06);
+.s-engine-row.is-default {
+  border-color: rgba(125, 207, 255, 0.4);
+  background: rgba(125, 207, 255, 0.05);
 }
 
-.s-engine-check {
+.s-engine-row.is-disabled {
+  opacity: 0.6;
+}
+
+.s-engine-info {
   display: flex;
   align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.s-engine-radio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: color 0.15s ease;
+}
+
+.s-engine-row.is-default .s-engine-radio {
   color: var(--accent, var(--cyan));
+}
+
+.s-engine-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .s-engine-name {
   font-weight: 500;
+  font-size: 13px;
+  color: var(--text-primary);
 }
 
-.s-engine-option .s-hint {
-  margin-left: auto;
+.s-engine-default-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 600;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(125, 207, 255, 0.15);
+  color: var(--accent, var(--cyan));
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.s-engine-controls {
+  display: flex;
+  align-items: center;
+}
+
+.s-engine-toggle-btn {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 5px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.s-engine-toggle-btn.active {
+  background: rgba(57, 211, 83, 0.12);
+  border-color: rgba(57, 211, 83, 0.3);
+  color: #39d353;
+}
+
+.s-engine-toggle-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.s-engine-toggle-btn:not(:disabled):hover {
+  border-color: var(--accent, var(--cyan));
+  color: var(--text-primary);
 }
 
 
@@ -618,6 +680,22 @@
     padding: 12px 16px;
   }
 
+  .s-reset-btn span {
+    display: none;
+  }
+
+  .s-reset-btn {
+    width: 30px;
+    height: 30px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .s-close-btn {
+    width: 30px;
+    height: 30px;
+  }
+
   .s-tabs {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -626,13 +704,33 @@
   .s-tab {
     flex: 1 0 auto;
     min-width: auto;
-    padding: 10px 8px;
-    font-size: 10.5px;
-    gap: 4px;
+    padding: 11px 10px;
+    font-size: 11px;
+    gap: 5px;
   }
 
+  .s-section-header {
+    padding: 14px 16px 4px;
+    font-size: 9.5px;
+  }
+
+  /* Make row open and eliminate redundant hint text on mobile */
   .s-row {
-    padding: 9px 16px;
+    padding: 12px 16px;
+    min-height: 48px;
+  }
+
+  .s-row-label > span:first-child {
+    font-size: 13.5px;
+  }
+
+  /* In minimal mobile mode: eliminate redundant hint text and footer on mobile */
+  body.minimal-mobile-mode .s-hint {
+    display: none;
+  }
+
+  body.minimal-mobile-mode .s-footer {
+    display: none;
   }
 
   .s-bm-icon-picker {
@@ -657,6 +755,23 @@
 
   .s-source-list {
     padding: 4px 16px 12px;
+  }
+
+  .s-h1-info {
+    padding: 6px 16px 8px;
+    font-size: 10.5px;
+  }
+
+  .s-field-group {
+    padding: 7px 16px;
+  }
+
+  .s-h1-actions {
+    padding: 10px 16px;
+  }
+
+  .s-test-result {
+    margin: 0 16px 12px;
   }
 }
 
