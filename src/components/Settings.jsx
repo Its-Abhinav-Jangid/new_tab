@@ -212,8 +212,6 @@ function AppearanceTab({ settings, updateSetting }) {
           </button>
         </div>
 
-        {showCustomPicker && (
-          <div className="s-sketch-container">
         {pickerAnim.shouldRender && (
           <div className={`s-sketch-container ${pickerAnim.animClass}`}>
             <Sketch
@@ -633,9 +631,6 @@ function HackerOneTab({ settings, updateSetting }) {
         </span>
       </div>
 
-      {(selectedProviderId === "corsproxy.io" ||
-        selectedProviderId === "cors.sh") && (
-        <div className="s-field-group">
       {corsKeyAnim.shouldRender && (
         <div className={`s-field-group ${corsKeyAnim.animClass}`}>
           <div className="s-label-row">
@@ -663,8 +658,6 @@ function HackerOneTab({ settings, updateSetting }) {
         </div>
       )}
 
-      {selectedProviderId === "custom" && (
-        <>
       {customProxyAnim.shouldRender && (
         <div className={customProxyAnim.animClass}>
           <div className="s-field-group">
@@ -704,12 +697,9 @@ function HackerOneTab({ settings, updateSetting }) {
               }
             />
           </div>
-        </>
         </div>
       )}
 
-      {selectedProviderId === "direct" && (
-        <div className="s-field-group">
       {directAnim.shouldRender && (
         <div className={`s-field-group ${directAnim.animClass}`}>
           <span className="s-hint-sub s-hint-warn">
@@ -739,11 +729,9 @@ function HackerOneTab({ settings, updateSetting }) {
           <span>{testing ? "Testing connection..." : "Test & Sync Now"}</span>
         </button>
 
-        {(settings.h1Identifier || settings.h1Token) && (
         {disconnectAnim.shouldRender && (
           <button
             type="button"
-            className="s-h1-clear-btn"
             className={`s-h1-clear-btn ${disconnectAnim.animClass}`}
             onClick={handleClear}
           >
@@ -752,13 +740,10 @@ function HackerOneTab({ settings, updateSetting }) {
         )}
       </div>
 
-      {testResult && (
       {testResultAnim.shouldRender && (
         <div
-          className={`s-test-result ${testResult.success ? "success" : "error"}`}
           className={`s-test-result ${testResult?.success ? "success" : "error"} ${testResultAnim.animClass}`}
         >
-          {testResult.message}
           {testResult?.message}
         </div>
       )}
