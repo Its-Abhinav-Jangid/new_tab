@@ -15,6 +15,8 @@ const SHORTCUT_GROUPS = [
       { keys: ["Alt", "1–4"], label: "Select Google / DuckDuckGo / Shodan / GitHub" },
       { keys: ["↑", "↓"], label: "Navigate search results & matching bookmarks" },
       { keys: ["Enter"], label: "Execute search or launch highlighted bookmark" },
+      { keys: ["Alt", "R"], label: "Toggle Security Feed vs HackerOne Reports" },
+      { keys: ["R"], label: "Toggle Security Feed vs HackerOne Reports (when not in search)" },
     ],
   },
   {

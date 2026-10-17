@@ -1,2 +1,68 @@
-/* App.css — component-level overrides if needed */
-/* All base styles live in index.css */
+/* ── Main View Switcher (Security Feed vs My Reports & Bounties) ── */
+
+.main-view-switcher {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card, #1f2133);
+  border: 1px solid var(--border, #2a2d4a);
+  border-radius: var(--radius, 8px);
+  padding: 3px;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.main-view-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: 6px;
+  font-family: var(--font-sans, 'Inter', sans-serif);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted, #565f89);
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.main-view-btn:hover {
+  color: var(--text-secondary, #a9b1d6);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.main-view-btn.active {
+  background: var(--bg-primary, #1a1b26);
+  color: var(--accent, #7dcfff);
+  border-color: var(--border-bright, #3d4070);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  font-weight: 600;
+}
+
+.main-view-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: rgba(125, 207, 255, 0.15);
+  color: var(--accent, #7dcfff);
+  font-family: var(--font-mono, monospace);
+  font-size: 10px;
+  font-weight: 700;
+}
+
+@media (max-width: 600px) {
+  .main-view-switcher {
+    width: 100%;
+    display: flex;
+  }
+
+  .main-view-btn {
+    flex: 1;
+    justify-content: center;
+    padding: 7px 10px;
+    font-size: 11.5px;
+  }
+}

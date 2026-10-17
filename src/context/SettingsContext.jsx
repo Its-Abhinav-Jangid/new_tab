@@ -18,6 +18,19 @@ export const DEFAULT_SETTINGS = {
   greetingName: "hacker",
   showScratchpad: true,
 
+  // HackerOne Submissions Tracker
+  h1Identifier: "",
+  h1Token: "",
+  h1CorsProvider: "corsproxy.io", // 'corsproxy.io' | 'cors.sh' | 'custom' | 'direct'
+  h1CorsApiKey: "",
+  h1CustomProxyUrl: "",
+  h1CustomHeaderName: "",
+  h1CustomHeaderValue: "",
+  h1AutoSync: true,
+  h1Reports: [],
+  h1LastSync: null,
+  h1SyncError: null,
+
   // Clock
   timeFormat: "24h", // '24h' | '12h'
   showSeconds: true,

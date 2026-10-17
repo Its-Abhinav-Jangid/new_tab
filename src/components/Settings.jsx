@@ -16,7 +16,13 @@ import {
   Circle,
   Terminal,
   Check,
+  ShieldAlert,
+  Eye,
+  EyeOff,
+  ExternalLink,
+  RefreshCw,
 } from "lucide-react";
+import { fetchH1Reports, CORS_PROVIDERS } from "../services/hackeroneApi";
 import "./Settings.css";
 
 // ── Sub-sections ─────────────────────────────────────────────────
@@ -381,11 +387,284 @@ function SearchTab({ settings, updateSetting }) {
   );
 }
 
+// ── Tab: HackerOne ───────────────────────────────────────────────
+function HackerOneTab({ settings, updateSetting }) {
+  const [showToken, setShowToken] = useState(false);
+  const [showCorsKey, setShowCorsKey] = useState(false);
+  const [testing, setTesting] = useState(false);
+  const [testResult, setTestResult] = useState(null);
+
+  const selectedProviderId = settings.h1CorsProvider || "corsproxy.io";
+  const activeProvider =
+    CORS_PROVIDERS.find((p) => p.id === selectedProviderId) ||
+    CORS_PROVIDERS[0];
+
+  const handleTestSync = async () => {
+    if (!settings.h1Identifier || !settings.h1Token) {
+      setTestResult({
+        success: false,
+        message: "Please enter both an API Identifier and API Token.",
+      });
+      return;
+    }
+
+    if (
+      (selectedProviderId === "corsproxy.io" ||
+        selectedProviderId === "cors.sh") &&
+      !settings.h1CorsApiKey
+    ) {
+      setTestResult({
+        success: false,
+        message: `An API key is required for ${activeProvider.name}. Get your free API key at ${activeProvider.urlDoc} and enter it below.`,
+      });
+      return;
+    }
+
+    setTesting(true);
+    setTestResult(null);
+
+    const res = await fetchH1Reports({
+      identifier: settings.h1Identifier,
+      token: settings.h1Token,
+      corsProvider: selectedProviderId,
+      corsApiKey: settings.h1CorsApiKey,
+      customProxyUrl: settings.h1CustomProxyUrl || settings.h1ProxyUrl,
+      customHeaderName: settings.h1CustomHeaderName,
+      customHeaderValue: settings.h1CustomHeaderValue,
+    });
+
+    setTesting(false);
+
+    if (res.success) {
+      updateSetting("h1Reports", res.reports);
+      updateSetting("h1LastSync", new Date().toISOString());
+      updateSetting("h1SyncError", null);
+      setTestResult({
+        success: true,
+        message: `Success! Connected and synced ${res.reports.length} report(s) from HackerOne.`,
+      });
+    } else {
+      updateSetting("h1SyncError", res.error);
+      setTestResult({
+        success: false,
+        message: res.error,
+      });
+    }
+  };
+
+  const handleClear = () => {
+    updateSetting("h1Identifier", "");
+    updateSetting("h1Token", "");
+    updateSetting("h1CorsApiKey", "");
+    updateSetting("h1SyncError", null);
+    setTestResult(null);
+  };
+
+  return (
+    <div className="s-tab-content">
+      <SectionHeader title="api credentials" />
+      <div className="s-h1-info">
+        Generate your personal token at{" "}
+        <a
+          href="https://hackerone.com/settings/api_token/edit"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="s-link"
+        >
+          hackerone.com/settings/api_token/edit
+          <ExternalLink size={10} />
+        </a>
+      </div>
+
+      <div className="s-field-group">
+        <label className="s-label">API Identifier (Token Username)</label>
+        <input
+          type="text"
+          className="s-text-input"
+          placeholder="e.g. your_token_identifier"
+          value={settings.h1Identifier || ""}
+          onChange={(e) => updateSetting("h1Identifier", e.target.value)}
+        />
+      </div>
+
+      <div className="s-field-group">
+        <div className="s-label-row">
+          <label className="s-label">API Token Value</label>
+          <button
+            type="button"
+            className="s-link-btn"
+            onClick={() => setShowToken(!showToken)}
+          >
+            {showToken ? <EyeOff size={11} /> : <Eye size={11} />}
+            <span>{showToken ? "Hide" : "Show"}</span>
+          </button>
+        </div>
+        <input
+          type={showToken ? "text" : "password"}
+          className="s-text-input"
+          placeholder="••••••••••••••••••••••••"
+          value={settings.h1Token || ""}
+          onChange={(e) => updateSetting("h1Token", e.target.value)}
+        />
+      </div>
+
+      <SectionHeader title="cors & proxy setup" />
+      <div className="s-field-group">
+        <label className="s-label">Standard CORS Provider</label>
+        <select
+          className="s-select"
+          value={selectedProviderId}
+          onChange={(e) => updateSetting("h1CorsProvider", e.target.value)}
+        >
+          {CORS_PROVIDERS.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </select>
+        <span className="s-hint-sub">
+          {activeProvider.description}{" "}
+          {activeProvider.urlDoc && (
+            <a
+              href={activeProvider.urlDoc}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="s-link"
+            >
+              Get Free Key
+              <ExternalLink size={10} />
+            </a>
+          )}
+        </span>
+      </div>
+
+      {(selectedProviderId === "corsproxy.io" ||
+        selectedProviderId === "cors.sh") && (
+        <div className="s-field-group">
+          <div className="s-label-row">
+            <label className="s-label">
+              {selectedProviderId === "corsproxy.io"
+                ? "corsproxy.io API Key"
+                : "cors.sh API Key"}
+            </label>
+            <button
+              type="button"
+              className="s-link-btn"
+              onClick={() => setShowCorsKey(!showCorsKey)}
+            >
+              {showCorsKey ? <EyeOff size={11} /> : <Eye size={11} />}
+              <span>{showCorsKey ? "Hide" : "Show"}</span>
+            </button>
+          </div>
+          <input
+            type={showCorsKey ? "text" : "password"}
+            className="s-text-input"
+            placeholder={activeProvider.keyPlaceholder || "Paste API key..."}
+            value={settings.h1CorsApiKey || ""}
+            onChange={(e) => updateSetting("h1CorsApiKey", e.target.value)}
+          />
+        </div>
+      )}
+
+      {selectedProviderId === "custom" && (
+        <>
+          <div className="s-field-group">
+            <label className="s-label">Custom Proxy URL</label>
+            <input
+              type="text"
+              className="s-text-input"
+              placeholder="https://my-worker.workers.dev/?url="
+              value={settings.h1CustomProxyUrl || settings.h1ProxyUrl || ""}
+              onChange={(e) => {
+                updateSetting("h1CustomProxyUrl", e.target.value);
+                updateSetting("h1ProxyUrl", e.target.value);
+              }}
+            />
+          </div>
+          <div className="s-field-group">
+            <label className="s-label">Custom Header Name (Optional)</label>
+            <input
+              type="text"
+              className="s-text-input"
+              placeholder="e.g. x-api-key or Authorization"
+              value={settings.h1CustomHeaderName || ""}
+              onChange={(e) =>
+                updateSetting("h1CustomHeaderName", e.target.value)
+              }
+            />
+          </div>
+          <div className="s-field-group">
+            <label className="s-label">Custom Header Value (Optional)</label>
+            <input
+              type="text"
+              className="s-text-input"
+              placeholder="e.g. secret_token_123"
+              value={settings.h1CustomHeaderValue || ""}
+              onChange={(e) =>
+                updateSetting("h1CustomHeaderValue", e.target.value)
+              }
+            />
+          </div>
+        </>
+      )}
+
+      {selectedProviderId === "direct" && (
+        <div className="s-field-group">
+          <span className="s-hint-sub s-hint-warn">
+            {
+              "// Direct requests require running in a browser extension with host permissions. Standard browser tabs will encounter CORS errors."
+            }
+          </span>
+        </div>
+      )}
+
+      <SectionHeader title="synchronization" />
+      <Row label="Auto-sync on load" hint="Sync reports when opening new tab">
+        <Toggle
+          value={settings.h1AutoSync ?? true}
+          onChange={(v) => updateSetting("h1AutoSync", v)}
+        />
+      </Row>
+
+      <div className="s-h1-actions">
+        <button
+          type="button"
+          className="s-h1-test-btn"
+          onClick={handleTestSync}
+          disabled={testing}
+        >
+          <RefreshCw size={12} className={testing ? "spin" : ""} />
+          <span>{testing ? "Testing connection..." : "Test & Sync Now"}</span>
+        </button>
+
+        {(settings.h1Identifier || settings.h1Token) && (
+          <button
+            type="button"
+            className="s-h1-clear-btn"
+            onClick={handleClear}
+          >
+            Disconnect
+          </button>
+        )}
+      </div>
+
+      {testResult && (
+        <div
+          className={`s-test-result ${testResult.success ? "success" : "error"}`}
+        >
+          {testResult.message}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Main Settings Panel ───────────────────────────────────────────
 const TABS = [
   { id: "appearance", label: "Appearance", icon: Palette },
   { id: "clock", label: "Clock", icon: ClockIcon },
   { id: "feed", label: "Feed", icon: Rss },
+  { id: "hackerone", label: "HackerOne", icon: ShieldAlert },
   { id: "search", label: "Search", icon: SearchIcon },
 ];
 
@@ -473,6 +752,9 @@ export default function Settings({ open, onClose }) {
           )}
           {activeTab === "feed" && (
             <FeedTab settings={settings} updateSetting={updateSetting} />
+          )}
+          {activeTab === "hackerone" && (
+            <HackerOneTab settings={settings} updateSetting={updateSetting} />
           )}
           {activeTab === "search" && (
             <SearchTab settings={settings} updateSetting={updateSetting} />

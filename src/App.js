@@ -10,7 +10,9 @@ import Scratchpad from "./components/Scratchpad";
 import Settings from "./components/Settings";
 import ShortcutsModal from "./components/ShortcutsModal";
 import WelcomeModal from "./components/WelcomeModal";
-import { Settings as SettingsIcon, FileText, Command } from "lucide-react";
+import H1ReportsTracker from "./components/H1ReportsTracker";
+import { fetchH1Reports } from "./services/hackeroneApi";
+import { Settings as SettingsIcon, FileText, Command, Rss, ShieldAlert } from "lucide-react";
 
 const FOOTER_PUNCHLINES = [
   "// hacker tab — stay sharp · your FBI agent gives this setup 10/10",
@@ -22,10 +24,11 @@ const FOOTER_PUNCHLINES = [
 ];
 
 function AppShell() {
-  const { settings } = useSettings();
+  const [settings, updateSetting] = useSettings();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [scratchpadOpen, setScratchpadOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [mainView, setMainView] = useState("feed"); // 'feed' | 'reports'
   const [hasScratchpadContent, setHasScratchpadContent] = useState(() => {
     try {
       return Boolean(localStorage.getItem("hacker_tab_scratchpad")?.trim());
@@ -40,7 +43,38 @@ function AppShell() {
 
   const showScratchpad = settings?.showScratchpad ?? true;
 
-  // Global key listener for Settings (Alt+, / ,), Scratchpad (Alt+N / N), and Shortcuts (Alt+? / ?)
+  // Auto-sync HackerOne reports once on app startup if configured
+  useEffect(() => {
+    if (settings?.h1AutoSync && settings?.h1Identifier && settings?.h1Token) {
+      fetchH1Reports({
+        identifier: settings.h1Identifier,
+        token: settings.h1Token,
+        corsProvider: settings.h1CorsProvider || "corsproxy.io",
+        corsApiKey: settings.h1CorsApiKey || "",
+        customProxyUrl: settings.h1CustomProxyUrl || settings.h1ProxyUrl || "",
+        customHeaderName: settings.h1CustomHeaderName || "",
+        customHeaderValue: settings.h1CustomHeaderValue || "",
+      }).then((res) => {
+        if (res.success) {
+          const existingManual = (settings.h1Reports || []).filter(
+            (r) => r.source === "manual"
+          );
+          const apiIds = new Set(res.reports.map((r) => r.id));
+          const filteredManual = existingManual.filter(
+            (r) => !apiIds.has(r.id)
+          );
+          updateSetting("h1Reports", [...res.reports, ...filteredManual]);
+          updateSetting("h1LastSync", new Date().toISOString());
+          updateSetting("h1SyncError", null);
+        } else {
+          updateSetting("h1SyncError", res.error);
+        }
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Global key listener for Settings (Alt+, / ,), Scratchpad (Alt+N / N), Shortcuts (Alt+? / ?), and View Toggle (Alt+R / R)
   useEffect(() => {
     const handleGlobalKeyDown = (e) => {
       const tag = document.activeElement?.tagName?.toLowerCase();
@@ -54,6 +88,13 @@ function AppShell() {
 
       // 1. Prefixed shortcuts (Alt or Ctrl) — WORK EVERYWHERE, INCLUDING SEARCH BAR
       if (hasModifier) {
+        // Alt+R: Toggle Security Feed / HackerOne Reports
+        if (e.altKey && (e.key === "r" || e.key === "R")) {
+          e.preventDefault();
+          setMainView((prev) => (prev === "feed" ? "reports" : "feed"));
+          return;
+        }
+
         // Alt+N or Ctrl+N: Scratchpad
         if (e.key === "n" || e.key === "N") {
           if (showScratchpad) {
@@ -80,9 +121,12 @@ function AppShell() {
         return;
       }
 
-      // 2. Unprefixed shortcuts (N, ,, ?) — work when not typing in an input/textarea
+      // 2. Unprefixed shortcuts (N, R, ,, ?) — work when not typing in an input/textarea
       if (!isInput && !isTextarea) {
-        if (e.key === ",") {
+        if (e.key === "r" || e.key === "R") {
+          e.preventDefault();
+          setMainView((prev) => (prev === "feed" ? "reports" : "feed"));
+        } else if (e.key === ",") {
           e.preventDefault();
           setSettingsOpen((prev) => !prev);
         } else if (e.key === "n" || e.key === "N") {
@@ -194,7 +238,38 @@ function AppShell() {
           <Bookmarks />
         </aside>
         <section className="app-feed">
-          <WriteupFeed />
+          <div className="main-view-switcher">
+            <button
+              type="button"
+              className={`main-view-btn ${mainView === "feed" ? "active" : ""}`}
+              onClick={() => setMainView("feed")}
+              title="Browse security writeups (Press Alt+R or R)"
+            >
+              <Rss size={13} />
+              <span>Security Feed</span>
+            </button>
+
+            <button
+              type="button"
+              className={`main-view-btn ${mainView === "reports" ? "active" : ""}`}
+              onClick={() => setMainView("reports")}
+              title="Track HackerOne submissions & bounties (Press Alt+R or R)"
+            >
+              <ShieldAlert size={13} />
+              <span>My Reports & Bounties</span>
+              {(settings?.h1Reports || []).length > 0 && (
+                <span className="main-view-badge">
+                  {settings.h1Reports.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {mainView === "feed" ? (
+            <WriteupFeed />
+          ) : (
+            <H1ReportsTracker onOpenSettings={() => setSettingsOpen(true)} />
+          )}
         </section>
       </main>
 
