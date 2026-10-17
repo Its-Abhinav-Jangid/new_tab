@@ -1,0 +1,47 @@
+.clock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.clock-time {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.clock-hhmm {
+  font-family: var(--font-mono);
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--accent, var(--green));
+  letter-spacing: 2px;
+}
+
+.clock-ss {
+  font-family: var(--font-mono);
+  font-size: 16px;
+  color: var(--green-dim);
+  letter-spacing: 1px;
+}
+
+.clock-ampm {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--accent, var(--green));
+  margin-left: 4px;
+}
+
+.clock-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-secondary);
+  letter-spacing: 1px;
+}
+
+.clock-greeting {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+}

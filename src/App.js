@@ -1,24 +1,62 @@
-import logo from './logo.svg';
-import './App.css';
+import { useState } from "react";
+import "./App.css";
+import { SettingsProvider } from "./context/SettingsContext";
+import Clock from "./components/Clock";
+import SearchBar from "./components/SearchBar";
+import WriteupFeed from "./components/WriteupFeed";
+import Bookmarks from "./components/Bookmarks";
+import Settings from "./components/Settings";
+import { Settings as SettingsIcon } from "lucide-react";
+
+function AppShell() {
+  const [settingsOpen, setSettingsOpen] = useState(false);
+
+  return (
+    <div className="app">
+      {/* Top bar: clock + settings toggle */}
+      <header className="app-header">
+        <Clock />
+        <button
+          className="settings-gear"
+          onClick={() => setSettingsOpen(true)}
+          title="Settings"
+          type="button"
+        >
+          <SettingsIcon size={18} />
+        </button>
+      </header>
+
+      {/* Center: search */}
+      <section className="app-search">
+        <SearchBar />
+      </section>
+
+      {/* Main content: bookmarks sidebar + feed */}
+      <main className="app-main">
+        <aside className="app-sidebar">
+          <Bookmarks />
+        </aside>
+        <section className="app-feed">
+          <WriteupFeed />
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="app-footer">
+        <span className="footer-text">{'// hacker tab — stay sharp'}</span>
+      </footer>
+
+      {/* Settings drawer */}
+      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+    </div>
+  );
+}
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <SettingsProvider>
+      <AppShell />
+    </SettingsProvider>
   );
 }
 
