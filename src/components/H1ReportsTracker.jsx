@@ -343,7 +343,7 @@ export default function H1ReportsTracker({ onOpenSettings }) {
         <div className="h1-top-title-wrap">
           <ShieldAlert size={15} className="h1-accent-icon" />
           <h2 className="h1-top-title">
-            <span className="h1-title-main">// hackerone reports</span>
+            <span className="h1-title-main">{"// hackerone reports"}</span>
             <span className="h1-title-sub">
               {" "}
               · track targets, triage & bounty earnings
